@@ -43,10 +43,13 @@ class AuthController extends Controller
             return response(['errors' => $validator->errors()->all()], 422);
         }
         $user = User::where('email', $request->email)->first();
+
+
         if ($user) {
             if (Hash::check($request->password, $user->password)) {
                 $token = $user->createToken('Laravel Password Grant Client')->accessToken;
                 $user->token = $token;
+                $user->role = $user->roles() ? $user->roles()->pluck('name')->first() : "none";
                 $response = ['user' => $user];
                 return response($response, 200);
             } else {

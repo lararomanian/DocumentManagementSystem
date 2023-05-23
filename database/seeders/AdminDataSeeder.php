@@ -26,7 +26,10 @@ class AdminDataSeeder extends Seeder
                 'remember_token' => Str::random(10),
             ];
 
-
+        $admin_data = User::where('email', $admin['email'])->first();
+        if($admin_data){
+            $admin_data->delete();
+        }
         $user = User::create($admin);
         $token = $user->createToken('Laravel Password Grant Client')->accessToken;
         $user->token = $token;
