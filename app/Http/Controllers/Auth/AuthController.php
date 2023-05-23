@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AuthRequest;
+use App\Mail\AccountCreationEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -27,6 +29,7 @@ class AuthController extends Controller
         $request['password'] = Hash::make($request['password']);
         $request['remember_token'] = Str::random(10);
         $user = User::create($request->toArray());
+        $this->sendMail($user);
         $token = $user->createToken('Laravel Password Grant Client')->accessToken;
         $user->token = $token;
         $response = ['user' => $user];
@@ -50,6 +53,7 @@ class AuthController extends Controller
                 $token = $user->createToken('Laravel Password Grant Client')->accessToken;
                 $user->token = $token;
                 $user->role = $user->roles() ? $user->roles()->pluck('name')->first() : "none";
+
                 $response = ['user' => $user];
                 return response($response, 200);
             } else {
@@ -68,5 +72,22 @@ class AuthController extends Controller
         $token->revoke();
         $response = ['message' => 'You have been successfully logged out!'];
         return response($response, 200);
+    }
+
+    public function sendMail($data)
+    {
+
+        $details = [
+            'name' => $data->name,
+            'email' => $data->email,
+            'title' => 'Account Created',
+            'body' => 'Your account has been created successfully. Please login to continue.'
+        ];
+
+        try {
+            Mail::to($details["email"])->send(new AccountCreationEmail($details));
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An Error Occurred.'], $e->getCode());
+        }
     }
 }

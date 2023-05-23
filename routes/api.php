@@ -3,7 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserRoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +29,19 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    //User Roles
+    //User Routes
     Route::get('/users', [UserController::class, 'getAllUsers']);
+    Route::get('/users/{id}', [UserController::class, 'getUserById']);
+    Route::patch('/users/{id}', [UserController::class, 'editUser']);
+    Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
+
+    //Role Routes
+    Route::get('/roles', [RolePermissionController::class, 'getAllRoles']);
+    Route::get('/permissions', [RolePermissionController::class, 'getAllPermissions']);
+    Route::post('/roles', [RolePermissionController::class, 'createRole']);
+    Route::patch('/roles/{id}', [RolePermissionController::class, 'updateRole']);
+    Route::delete('/roles/{id}', [RolePermissionController::class, 'deleteRole']);
+
+    //User Role Routes
+    Route::post('/users/{id}/roles', [UserRoleController::class, 'setRole']);
 });
