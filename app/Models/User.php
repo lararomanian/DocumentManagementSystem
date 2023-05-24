@@ -46,6 +46,9 @@ class User extends Authenticatable
     ];
 
 
+    public $guard_name = 'web';
+
+
     public function validateForPassportPasswordGrant(string $password): bool
     {
         return Hash::check($password, $this->password);
@@ -56,4 +59,17 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id');
     }
 
+    public function getRoles($user)
+    {
+        return $user->roles() ? $user->roles()->pluck('name')->first() : "none";
+    }
+
+    public function getUserPermissions($role)
+    {
+       $permissions =  Role::findByName($role)->permissions;
+         $permissions = $permissions->map(function ($permission) {
+              return $permission->name;
+         });
+       return $permissions;
+    }
 }

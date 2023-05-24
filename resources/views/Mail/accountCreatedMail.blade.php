@@ -4,12 +4,18 @@
     <title>Account Created</title>
 </head>
 <body>
-    <h1>Welcome to our website! "{{$data['name']}}"</h1>
+    <h1>Account Created</h1>
+    <p>Hi {{$data["name"]}},</p>
+    <p>Your account has been created. Please use the email and password below to login to your account.</p>
+    <p>Email: {{$data["email"]}}</p>
+    <p>Password: {{$data["password"]}}</p>
+    <p>Once you have logged in you can change your password by clicking on the link below.</p>
+    <a href="/">Reset Password</a>
     <br>
-
-    <p>Your account has been successfully created.</p>
-    <p> Thank you for joining us.</p>
+    <p>Click on the link below to login to your account.</p>
+    <a href="/">Login</a>
     <br>
-    <p><a href="127.0.0.1:8000">Login</a></p>
+    <p>Thank you,</p>
+    <p>Admin</p>
 </body>
 </html>

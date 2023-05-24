@@ -52,7 +52,8 @@ class AuthController extends Controller
             if (Hash::check($request->password, $user->password)) {
                 $token = $user->createToken('Laravel Password Grant Client')->accessToken;
                 $user->token = $token;
-                $user->role = $user->roles() ? $user->roles()->pluck('name')->first() : "none";
+                $user->role = $user->getRoles($user);
+                $user->permissions = $user->getUserPermissions($user->role);
 
                 $response = ['user' => $user];
                 return response($response, 200);
@@ -80,6 +81,7 @@ class AuthController extends Controller
         $details = [
             'name' => $data->name,
             'email' => $data->email,
+            'password' => $data->password,
             'title' => 'Account Created',
             'body' => 'Your account has been created successfully. Please login to continue.'
         ];
@@ -89,5 +91,28 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'An Error Occurred.'], $e->getCode());
         }
+    }
+
+    public function resetPassword(Request $request, $id)
+    {
+        $request->validate([
+            'old_password' => 'required|string|min:8',
+            'password' => 'required|string|min:8',
+            'password_confirmation' => 'required|string|min:8|same:password',
+        ]);
+
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        if (!Hash::check($request->old_password, $user->password)) {
+            return response()->json(['message' => 'Old password is incorrect.'], 422);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json(['message' => 'Password changed successfully.'], 200);
     }
 }

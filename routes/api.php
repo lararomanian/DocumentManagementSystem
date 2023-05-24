@@ -34,7 +34,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/users/{id}', [UserController::class, 'getUserById']);
     Route::patch('/users/{id}', [UserController::class, 'editUser']);
     Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
-
+    Route::patch('/users/{id}/password', [AuthController::class, 'resetPassword']);
     //Role Routes
     Route::get('/roles', [RolePermissionController::class, 'getAllRoles']);
     Route::get('/permissions', [RolePermissionController::class, 'getAllPermissions']);
