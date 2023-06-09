@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\ImageController;
+use App\Http\Controllers\PDFController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRoleController;
@@ -42,6 +44,13 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('/roles/{id}', [RolePermissionController::class, 'updateRole']);
     Route::delete('/roles/{id}', [RolePermissionController::class, 'deleteRole']);
 
+    //image upload path
+
     //User Role Routes
     Route::post('/users/{id}/roles', [UserRoleController::class, 'setRole']);
 });
+
+Route::post('/import-image', [ImageController::class, 'importImage']);
+// Route::post('/process-pdf', [ImageController::class, 'processPDF']);
+Route::post('/process-pdf', [PdfController::class, 'convertAndProcessPdf']);
+
