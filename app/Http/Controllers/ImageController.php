@@ -16,15 +16,14 @@ class ImageController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Store the uploaded image temporarily
         $imagePath = $request->file('image')->store('temp');
 
-        // Process the image using OCR
-        $text = (new TesseractOCR(storage_path('app/' . $imagePath)))->pdf()
+        $text = (new TesseractOCR(storage_path('app/' . $imagePath)))
+            ->lang('nep')
             ->run();
 
-        //download $text
-        return response()->download($text);
+        return response()->json($text);
+
     }
 
     public function processPDF(Request $request)
@@ -40,11 +39,12 @@ class ImageController extends Controller
 
         // Convert the PDF to images
         $pdf = new Pdf(storage_path('app/' . $pdfPath));
-        $pdf->saveAllPagesAsImages(storage_path('app/pdf_images'));
+        $pdf->setOutputFormat('png');
+        $pdf->saveAllPages(storage_path('app/pdf_images'));
 
         // Process each image with Tesseract OCR
         $textResults = [];
-        $imageFiles = glob(storage_path('app/pdf_images/*.jpg'));
+        $imageFiles = glob(storage_path('app/pdf_images/*.png'));
 
         foreach ($imageFiles as $imageFile) {
             $text = (new TesseractOCR($imageFile))->run();

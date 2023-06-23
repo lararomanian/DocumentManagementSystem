@@ -11,14 +11,6 @@ class PDFController extends Controller
 
     public function convertAndProcessPdf(Request $request)
     {
-        // // Validate if the request contains a PDF file
-        // $request->validate([
-        //     'pdf' => 'required|mimes:pdf',
-        // ]);
-
-        // // Save the uploaded PDF file
-        // $pdfPath = $request->pdf->store('temp');
-
         // Convert PDF to images
         $outputPath = storage_path('app/temp/');
         $pdf = new Pdf("D:\Downloads\Lab sheet  2.pdf");

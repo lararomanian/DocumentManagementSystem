@@ -24,7 +24,7 @@ class AuthController extends Controller
             'password_confirmation' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
-            return response(['errors' => $validator->errors()->all()], 422);
+            return response(["data" => "Invalid Data", 'message' => $validator->errors()->all(), "status" => 401], 401);
         }
         $request['password'] = Hash::make($request['password']);
         $request['remember_token'] = Str::random(10);
@@ -32,8 +32,7 @@ class AuthController extends Controller
         $this->sendMail($user);
         $token = $user->createToken('Laravel Password Grant Client')->accessToken;
         $user->token = $token;
-        $response = ['user' => $user];
-        return response($response, 200);
+        return response()->json(['data' => $user, "message" => "User registered successfully", "status" => 200], 200);
     }
 
     public function login(Request $request)
@@ -43,7 +42,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
-            return response(['errors' => $validator->errors()->all()], 422);
+            return response(["data" => "Invalid Data", 'message' => $validator->errors()->all(), 'status' => 422], 422);
         }
         $user = User::where('email', $request->email)->first();
 
@@ -54,16 +53,16 @@ class AuthController extends Controller
                 $user->token = $token;
                 $user->role = $user->getRoles($user);
                 $user->permissions = $user->getUserPermissions($user->role);
-
-                $response = ['user' => $user];
-                return response($response, 200);
+                $this->user = $user;
+                $response = ['data' => $user, 'message' => 'User logged in successfully.', "status" => 200];
+                return response()->json($response, 200);
             } else {
-                $response = ["message" => "Password mismatch"];
-                return response($response, 422);
+                $response = ["data" => "Password mismatch", "message" => "Password mismatch", "status" => 401];
+                return response($response, 401);
             }
         } else {
-            $response = ["message" => 'User does not exist'];
-            return response($response, 422);
+            $response = ["data" => 'User does not exist', "message" => 'User does not exist', "status" => 401];
+            return response()->json($response, 401);
         }
     }
 
@@ -71,7 +70,7 @@ class AuthController extends Controller
     {
         $token = $request->user()->token();
         $token->revoke();
-        $response = ['message' => 'You have been successfully logged out!'];
+        $response = ['message' => 'You have been successfully logged out!', "status" => 200];
         return response($response, 200);
     }
 
@@ -89,7 +88,7 @@ class AuthController extends Controller
         try {
             Mail::to($details["email"])->send(new AccountCreationEmail($details));
         } catch (\Exception $e) {
-            return response()->json(['message' => 'An Error Occurred.'], $e->getCode());
+            return response()->json(['data' => 'An Error Occurred.', "message" => $e->getMessage(), "status" => $e->getCode()], $e->getCode());
         }
     }
 
@@ -103,16 +102,51 @@ class AuthController extends Controller
 
         $user = User::find($id);
         if (!$user) {
-            return response()->json(['message' => 'User not found.'], 404);
+            return response()->json(['data' => 'An Error Occurred.', 'message' => 'User not found.', "status" => 204], 204);
         }
 
         if (!Hash::check($request->old_password, $user->password)) {
-            return response()->json(['message' => 'Old password is incorrect.'], 422);
+            return response()->json(['data' => 'An Error Occurred.', 'message' => 'Old password is incorrect.', "status" => 401], 401);
         }
 
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return response()->json(['message' => 'Password changed successfully.'], 200);
+        return response()->json(["data" => $user, 'message' => 'Password changed successfully.', "status" => 200], 200);
+    }
+
+    public function getClientToken($id)
+    {
+        $clientId = $id; // Replace with the actual client ID
+
+        $client = User::find($clientId);
+
+        if (!$client) {
+            return response(['message' => 'Client not found'], 404);
+        }
+        $token = $client->createToken('Laravel Password Grant Client')->accessToken;
+
+        return $token;
+    }
+
+    public function getLoggedUserData()
+    {
+
+        //from auth use get the respective user, its token, spatie roles and permissions and store them in an array and retun it
+        $user = Auth::user();
+
+        $token = $this->getClientToken($user->id);
+        $user->role = $user->roles()->pluck('name')->first();
+        $user->permissions = $user->getPermissionsViaRoles()->pluck('name');
+        $user->token = $token;
+        $name = $user->name;
+
+        $data = [
+            'name' => $name,
+            'token' => $token,
+            'role' => $user->role,
+            'permissions' => $user->permissions,
+        ];
+        return response()->json(['data' => $data, "message" => "User data fetched successfully", "status" => 200], 200);
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Controllers\PDFController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRoleController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,7 @@ Route::group(['middleware' => ['cors', 'json.response']], function () {
     // public routes
     Route::post('/login', [AuthController::class, 'login'])->name('login.api');
     Route::post('/register', [AuthController::class, 'register'])->name('register.api');
+    Route::get('/login/user', [AuthController::class, 'getLoggedUserData'])->name('login.user.api');
 });
 
 Route::middleware('auth:api')->group(function () {
@@ -37,6 +39,7 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('/users/{id}', [UserController::class, 'editUser']);
     Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
     Route::patch('/users/{id}/password', [AuthController::class, 'resetPassword']);
+    Route::get("user/data", [AuthController::class, 'getLoggedUserData']);
     //Role Routes
     Route::get('/roles', [RolePermissionController::class, 'getAllRoles']);
     Route::get('/permissions', [RolePermissionController::class, 'getAllPermissions']);

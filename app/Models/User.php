@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\HasApiTokens;
+use Laravel\Passport\Passport;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -66,7 +67,7 @@ class User extends Authenticatable
 
     public function getUserPermissions($role)
     {
-       $permissions =  Role::findByName($role)->permissions;
+       $permissions =  Role::findByName("user")->permissions;
          $permissions = $permissions->map(function ($permission) {
               return $permission->name;
          });
