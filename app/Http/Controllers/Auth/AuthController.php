@@ -20,13 +20,13 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'password_confirmation' => 'required|string|min:6',
+            'password' => 'nullable|string|min:6|confirmed',
         ]);
         if ($validator->fails()) {
             return response(["data" => "Invalid Data", 'message' => $validator->errors()->all(), "status" => 401], 401);
         }
-        $request['password'] = Hash::make($request['password']);
+        // $request['password'] = Hash::make($request['password']);
+        $request['password'] = $this->generatePassword();
         $request['remember_token'] = Str::random(10);
         $user = User::create($request->toArray());
         $this->sendMail($user);
@@ -148,5 +148,10 @@ class AuthController extends Controller
             'permissions' => $user->permissions,
         ];
         return response()->json(['data' => $data, "message" => "User data fetched successfully", "status" => 200], 200);
+    }
+
+    public function generatePassword() {
+        $password = Str::random(8) . time() . bin2hex(random_bytes(8));
+        return $password;
     }
 }
