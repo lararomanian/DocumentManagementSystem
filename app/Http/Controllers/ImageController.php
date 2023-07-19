@@ -59,15 +59,11 @@ class ImageController extends Controller
     }
 
 
-    public function convertPdfToImage(Request $request)
+    public function convertPdfToImage($file, $lang)
     {
-        $request->validate([
-            'pdf' => 'required',
-            'lang' => 'required'
-        ]);
 
         $pdf_folder_name = 'pdfs/' . bin2hex(random_bytes(7)) . '/';
-        $pdfPath = $request->file('pdf')->store($pdf_folder_name . $request->file('pdf')->getClientOriginalName());
+        $pdfPath = $file->store($pdf_folder_name . $file->getClientOriginalName());
 
         // Converting the PDF to images
         $pdf = new Pdf(storage_path('app/' . $pdfPath));
@@ -85,7 +81,7 @@ class ImageController extends Controller
             $pdf->setPage($page)->saveImage($pdf_images_folder . "/page{$page}.png");
         }
 
-        return $this->scanImages($pdf_images_folder, $request->lang);
+        return $this->scanImages($pdf_images_folder, $lang);
     }
 
     private function scanImages($imagesFolder, $lang)
@@ -102,8 +98,8 @@ class ImageController extends Controller
         return $combinedText;
     }
 
-    public function ocrEngine(Request $request)
-    {
-        $this->convertPdfToImage($request);
-    }
+    // public function ocrEngine(Request $request)
+    // {
+        // $this->convertPdfToImage($request);
+    // }
 }

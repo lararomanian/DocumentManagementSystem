@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\DocumentsController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\ProjectController;
@@ -60,6 +61,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('projects/{project}/add-user', [ProjectController::class, 'addUser']);
     Route::post('projects/{project}/remove-user', [ProjectController::class, 'removeUser']);
     Route::get('projects/{project}/users', [ProjectController::class, 'getUsersInProject']);
-});
 
-Route::post('/import-image', [ImageController::class, 'convertPdfToImage']);
+    Route::get('/documents', [DocumentsController::class, 'index']);
+    Route::post('/documents', [DocumentsController::class, 'store']);
+    Route::patch('/documents/{documents}', [DocumentsController::class, 'update']);
+
+});
+// Route::post('/import-image', [ImageController::class, 'convertPdfToImage']);
+

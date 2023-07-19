@@ -7,22 +7,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-class Project extends Model
+class Documents extends Model
 {
     use HasFactory, UserStampTrait;
 
-    protected $fillable = ["name", "description", "image", "slug", "status", "created_by"];
+    protected $fillable = [
+        "title",
+        "description",
+        "slug",
+        "file",
+        "status",
+        "created_by",
+        "updated_by"
+    ];
 
-    protected $table = "projects";
-
-    public function users()
+    public function user()
     {
-        return $this->belongsToMany(User::class);
-    }
-
-    public function getJoinedAtAttribute()
-    {
-        return $this->created_at;
+        return $this->belongsTo(User::class, "created_by", "id");
     }
 
     public function setSlugAttribute($value)
