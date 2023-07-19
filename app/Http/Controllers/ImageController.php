@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Alimranahmed\LaraOCR\Facades\OCR;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
 use thiagoalessio\TesseractOCR\TesseractOCR;
 use Spatie\PdfToImage\Pdf;

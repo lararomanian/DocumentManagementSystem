@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\PDFController;
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRoleController;
@@ -47,13 +48,18 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('/roles/{id}', [RolePermissionController::class, 'updateRole']);
     Route::delete('/roles/{id}', [RolePermissionController::class, 'deleteRole']);
 
-    //image upload path
-
     //User Role Routes
     Route::post('/users/{id}/roles', [UserRoleController::class, 'setRole']);
+
+    //Project Routes
+    Route::get('/projects', [ProjectController::class, 'index']);
+    Route::post('/projects', [ProjectController::class, 'store']);
+    Route::get('/projects/{project}', [ProjectController::class, 'show']);
+    Route::patch('/projects/{project}', [ProjectController::class, 'update']);
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy']);
+    Route::post('projects/{project}/add-user', [ProjectController::class, 'addUser']);
+    Route::post('projects/{project}/remove-user', [ProjectController::class, 'removeUser']);
+    Route::get('projects/{project}/users', [ProjectController::class, 'getUsersInProject']);
 });
 
 Route::post('/import-image', [ImageController::class, 'convertPdfToImage']);
-// Route::post('/process-pdf', [ImageController::class, 'processPDF']);
-Route::post('/process-pdf', [PdfController::class, 'processImageWithOCR']);
-
