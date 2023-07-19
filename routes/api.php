@@ -53,7 +53,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/users/{id}/roles', [UserRoleController::class, 'setRole']);
 });
 
-Route::post('/import-image', [ImageController::class, 'importImage']);
+Route::post('/import-image', [ImageController::class, 'convertPdfToImage']);
 // Route::post('/process-pdf', [ImageController::class, 'processPDF']);
-Route::post('/process-pdf', [PdfController::class, 'convertAndProcessPdf']);
+Route::post('/process-pdf', [PdfController::class, 'processImageWithOCR']);
 

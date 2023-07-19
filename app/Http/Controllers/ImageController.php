@@ -7,8 +7,12 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
 use thiagoalessio\TesseractOCR\TesseractOCR;
 use Spatie\PdfToImage\Pdf;
+
 class ImageController extends Controller
 {
+
+    protected $image_path = "";
+
     public function importImage(Request $request)
     {
         // Validate the request
@@ -23,7 +27,6 @@ class ImageController extends Controller
             ->run();
 
         return response()->json($text);
-
     }
 
     public function processPDF(Request $request)
@@ -53,5 +56,55 @@ class ImageController extends Controller
 
         // Return the extracted text as JSON response
         return response()->json(['results' => $textResults]);
+    }
+
+
+    public function convertPdfToImage(Request $request)
+    {
+        $request->validate([
+            'pdf' => 'required',
+        ]);
+
+        $pdf_folder_name = 'pdfs/' . bin2hex(random_bytes(7)) . '/';
+        $pdfPath = $request->file('pdf')->store($pdf_folder_name . $request->file('pdf')->getClientOriginalName());
+
+        // Converting the PDF to images
+        $pdf = new Pdf(storage_path('app/' . $pdfPath));
+        $pdf->setOutputFormat('png');
+
+        // Creating a folder to store the images
+        $pdf_images_folder = storage_path('app/' . $pdf_folder_name . 'pdf_images');
+        if (!file_exists($pdf_images_folder)) {
+            mkdir($pdf_images_folder, 0777, true);
+        }
+
+        // Looping through all pages and save each page as an image
+        $numPages = $pdf->getNumberOfPages();
+        for ($page = 1; $page <= $numPages; $page++) {
+            $pdf->setPage($page)->saveImage($pdf_images_folder . "/page{$page}.png");
+        }
+
+        // return $pdf_images_folder;
+
+        return $this->scanImages($pdf_images_folder);
+    }
+
+    private function scanImages($imagesFolder)
+    {
+        $combinedText = '';
+        $imageFiles = glob($imagesFolder . '/*.png');
+
+        foreach ($imageFiles as $imageFile) {
+            $ocr = new TesseractOCR($imageFile);
+            $ocr->setTempDir(storage_path('app/tmp')); // Set a temporary directory for Tesseract to use
+            $combinedText .= $ocr->run(); // Perform OCR and append the extracted text to the result
+        }
+
+        return $combinedText;
+    }
+
+    public function ocrEngine(Request $request)
+    {
+        $this->convertPdfToImage($request);
     }
 }
