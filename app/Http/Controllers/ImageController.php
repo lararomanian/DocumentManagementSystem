@@ -34,6 +34,7 @@ class ImageController extends Controller
         // Validate the uploaded file as a PDF
         $request->validate([
             'pdf' => 'required|mimes:pdf',
+            'lang' => 'required',
         ]);
 
         // Store the uploaded PDF file
@@ -50,11 +51,12 @@ class ImageController extends Controller
         $imageFiles = glob(storage_path('app/pdf_images/*.png'));
 
         foreach ($imageFiles as $imageFile) {
-            $text = (new TesseractOCR($imageFile))->run();
+            $text = (new TesseractOCR($imageFile))
+                ->lang($request->lang)
+                ->run();
             $textResults[] = $text;
         }
 
-        // Return the extracted text as JSON response
         return response()->json(['results' => $textResults]);
     }
 
@@ -63,6 +65,7 @@ class ImageController extends Controller
     {
         $request->validate([
             'pdf' => 'required',
+            'lang' => 'required'
         ]);
 
         $pdf_folder_name = 'pdfs/' . bin2hex(random_bytes(7)) . '/';
@@ -84,20 +87,18 @@ class ImageController extends Controller
             $pdf->setPage($page)->saveImage($pdf_images_folder . "/page{$page}.png");
         }
 
-        // return $pdf_images_folder;
-
-        return $this->scanImages($pdf_images_folder);
+        return $this->scanImages($pdf_images_folder, $request->lang);
     }
 
-    private function scanImages($imagesFolder)
+    private function scanImages($imagesFolder, $lang)
     {
         $combinedText = '';
         $imageFiles = glob($imagesFolder . '/*.png');
 
         foreach ($imageFiles as $imageFile) {
             $ocr = new TesseractOCR($imageFile);
-            $ocr->setTempDir(storage_path('app/tmp')); // Set a temporary directory for Tesseract to use
-            $combinedText .= $ocr->run(); // Perform OCR and append the extracted text to the result
+            $ocr->setTempDir(storage_path('app/tmp')); // Setting a temporary directory for Tesseract to use
+            $combinedText .= $ocr->lang($lang)->run(); // Performing OCR and append the extracted text to the result
         }
 
         return $combinedText;
