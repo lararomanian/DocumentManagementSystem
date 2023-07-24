@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\DocumentRequest;
 use App\Models\Documents;
+use App\Models\Folder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use League\CommonMark\Node\Block\Document;
@@ -21,7 +22,7 @@ class DocumentsController extends Controller
 
     public function index()
     {
-        $documents = Documents::all();
+        $documents = Documents::all()->map->getShortInfo();
         return response()->json([
             'data' => $documents,
             'message' => 'Successfully retrieved documents',
@@ -42,7 +43,16 @@ class DocumentsController extends Controller
         }
 
         try {
-            // return response()->json($request->all());
+
+            $folder = Folder::find($request->folder_id);
+            if (!$folder) {
+                return response()->json([
+                    'data' => "Not found",
+                    'message' => 'No such folder found',
+                    'status' => 404
+                ], 404);
+            }
+
             $documents = Documents::create($request->all());
             $documents->ocr_text = $this->controller->convertPdfToImage($request->file, $request->lang);
             $documents->save();
@@ -79,9 +89,19 @@ class DocumentsController extends Controller
         // }
         // return $request->all();
         try {
+            // return $request->all();
+
+            $folder = Folder::find($request->folder_id);
+            if (!$folder) {
+                return response()->json([
+                    'data' => "Not found",
+                    'message' => 'No such folder found',
+                    'status' => 404
+                ], 404);
+            }
+
             $document = Documents::find($documents);
             $document->update($request->all());
-
             if ($request->ocr_text) {
                 $document->ocr_text = $request->ocr_text;
                 $document->save();
@@ -125,6 +145,25 @@ class DocumentsController extends Controller
             return response()->json([
                 'data' => $documents,
                 'message' => 'Successfully retrieved documents',
+                'status' => 200
+            ], 200);
+        }
+
+        return response()->json([
+            'data' => "Not found",
+            'message' => 'No such documents found',
+            'status' => 404
+        ], 404);
+    }
+
+    public function delete($document)
+    {
+        $documents = Documents::find($document);
+
+        if ($documents && !empty($documents)) {
+            $documents->delete();
+            return response()->json([
+                'message' => 'Successfully deleted documents',
                 'status' => 200
             ], 200);
         }

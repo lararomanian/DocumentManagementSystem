@@ -29,4 +29,9 @@ class Project extends Model
     {
         $this->attributes['slug'] = $value ? $value : Str::slug($this->name);
     }
+
+    public function folders()
+    {
+        return $this->hasMany(Folder::class);
+    }
 }

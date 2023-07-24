@@ -21,6 +21,7 @@ class Documents extends Model
         "created_by",
         "updated_by",
         "project_id",
+        "folder_id"
     ];
 
     public function user()
@@ -46,5 +47,24 @@ class Documents extends Model
     public function documents()
     {
         return $this->morphMany(ModelsFile::class, 'model');
+    }
+
+    public function folder()
+    {
+        return $this->belongsTo(Folder::class);
+    }
+
+    public function getShortInfo()
+    {
+        return [
+            'project_id' => $this->project_id,
+            'title' => $this->title,
+            'id' => $this->id,
+            'slug' => $this->slug,
+            'status' => $this->status,
+            'description' => $this->description,
+            'created_at' => $this->created_at,
+            'created_by' => $this->user->name,
+        ];
     }
 }

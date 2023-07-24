@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "247f56cae4853653f1c2e0f7b4f85029",
+    "content-hash": "87e6ca805553baea80a32e96c2cd5db0",
     "packages": [
         {
             "name": "alimranahmed/laraocr",
@@ -9544,7 +9544,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "8.1.20"
+        "php": "^8.0"
     },
     "platform-dev": [],
     "plugin-api-version": "2.3.0"

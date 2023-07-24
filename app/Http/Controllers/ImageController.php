@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use thiagoalessio\TesseractOCR\TesseractOCR;
 use Spatie\PdfToImage\Pdf;
-
+use Dompdf\Dompdf;
 class ImageController extends Controller
 {
 
@@ -101,5 +101,10 @@ class ImageController extends Controller
     // public function ocrEngine(Request $request)
     // {
         // $this->convertPdfToImage($request);
+    // }
+
+    // public function exportToPdf($text, ) {
+
+    //     //when this method is called
     // }
 }

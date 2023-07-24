@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DocumentsController;
+use App\Http\Controllers\FolderController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\ProjectController;
@@ -66,8 +67,17 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/documents', [DocumentsController::class, 'store']);
     Route::patch('/documents/{documents}', [DocumentsController::class, 'update']);
     Route::get('/documents/{documents}/show', [DocumentsController::class, 'show']);
-
+    Route::delete('/documents/{documents}', [DocumentsController::class, 'delete']);
 
 });
-// Route::post('/import-image', [ImageController::class, 'convertPdfToImage']);
+Route::prefix('folders')->group(function () {
+    Route::get('/', [FolderController::class, 'index']);
+    Route::post('/', [FolderController::class, 'store']);
+    Route::get('/{id}', [FolderController::class, 'show']);
+    Route::patch('/{id}', [FolderController::class, 'update']);
+    Route::delete('/{id}', [FolderController::class, 'destroy']);
+    Route::post('/{parentId}', [FolderController::class, 'store']); // Create subfolder
+});
+
+
 
