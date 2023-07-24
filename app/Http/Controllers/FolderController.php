@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Folder;
+use App\Models\Project;
 
 class FolderController extends Controller
 {
@@ -26,8 +27,30 @@ class FolderController extends Controller
         }
 
         $folder = new Folder($data);
-        $folder->parent_id = $parentId;
+        $parentId = $request->parent_id;
+        if ($parentId) {
+            $parentFolder = Folder::find($parentId);
+            if (!$parentFolder) {
+                return response()->json([
+                    'data' => "Not found",
+                    'message' => 'No such folder found',
+                    'status' => 404
+                ], 404);
+            }
+        }
+
+        if($request->project_id) {
+            $project = Project::find($request->project_id);
+            if (!$project) {
+                return response()->json([
+                    'data' => "Not found",
+                    'message' => 'No such project found',
+                    'status' => 404
+                ], 404);
+            }
+        }
         $folder->project_id = $request->project_id;
+        $folder->parent_id = $request->parent_id;
         $folder->save();
 
         return response()->json(['data' => $folder, 'message' => 'Folder created successfully', 'status' => 201]);

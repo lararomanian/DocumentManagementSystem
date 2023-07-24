@@ -30,7 +30,7 @@ class DocumentRequest extends FormRequest
         return [
             'file' => [
                 'required',
-                'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt',
+                // 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt',
                 Rule::unique('documents')->ignore($documentId),
             ],
             'title' => [

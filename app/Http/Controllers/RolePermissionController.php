@@ -102,4 +102,10 @@ class RolePermissionController extends Controller
             return response()->json(['message' => $e->getMessage(), "data" => "Something went wrong", "status" => $e->getCode()], $e->getCode());
         }
     }
+
+    public function abilities()
+    {
+        return auth()->user()->jsPermissions();
+    }
+
 }

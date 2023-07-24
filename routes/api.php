@@ -67,8 +67,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/documents', [DocumentsController::class, 'store']);
     Route::patch('/documents/{documents}', [DocumentsController::class, 'update']);
     Route::get('/documents/{documents}/show', [DocumentsController::class, 'show']);
-    Route::delete('/documents/{documents}', [DocumentsController::class, 'delete']);
+    Route::delete('/documents/{documents}/delete', [DocumentsController::class, 'delete']);
 
+    Route::get('/abilities', [RolePermissionController::class, 'abilities']);
 });
 Route::prefix('folders')->group(function () {
     Route::get('/', [FolderController::class, 'index']);
