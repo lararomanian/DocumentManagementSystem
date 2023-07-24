@@ -40,10 +40,7 @@ class DocumentRequest extends FormRequest
             'description' => 'nullable',
             'slug' => 'required',
             'status' => 'required',
-            'lang' => [
-                'required',
-                Rule::unique('documents')->ignore($documentId),
-            ],
+            "project_id" => "required",
         ];
     }
 
@@ -65,7 +62,8 @@ class DocumentRequest extends FormRequest
             "description" => "Description",
             "slug" => "Slug",
             "status" => "Status",
-            "lang" => "Language"
+            "lang" => "Language",
+            "project_id" => "Project",
         ];
     }
 }

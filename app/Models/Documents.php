@@ -18,7 +18,8 @@ class Documents extends Model
         "file",
         "status",
         "created_by",
-        "updated_by"
+        "updated_by",
+        "project_id",
     ];
 
     public function user()
