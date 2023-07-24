@@ -65,6 +65,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/documents', [DocumentsController::class, 'index']);
     Route::post('/documents', [DocumentsController::class, 'store']);
     Route::patch('/documents/{documents}', [DocumentsController::class, 'update']);
+    Route::get('/documents/{documents}/show', [DocumentsController::class, 'show']);
+
 
 });
 // Route::post('/import-image', [ImageController::class, 'convertPdfToImage']);
