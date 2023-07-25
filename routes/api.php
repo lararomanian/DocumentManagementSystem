@@ -80,5 +80,7 @@ Route::prefix('folders')->group(function () {
     Route::post('/{parentId}', [FolderController::class, 'store']); // Create subfolder
 });
 
+Route::get("/folders/{id}/export", [DocumentsController::class, 'exportFolder']);
+Route::get("/documents/{id}/export", [DocumentsController::class, 'exportPDF']);
 
 

@@ -24,6 +24,8 @@ class Documents extends Model
         "folder_id"
     ];
 
+    protected $with = ['documents'];
+
     public function user()
     {
         return $this->belongsTo(User::class, "created_by", "id");

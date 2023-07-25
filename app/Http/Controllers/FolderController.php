@@ -21,7 +21,7 @@ class FolderController extends Controller
             'name' => 'required|string',
         ]);
 
-        $folder = Folder::where('name', $data['name'])->where('parent_id', $parentId)->first();
+        $folder = Folder::where('name', $data['name'])->where('parent_id', $request->parent_id)->first();
         if ($folder) {
             $data['name'] = $data['name'] . ' (' . bin2hex(random_bytes(10)) . ')';
         }
@@ -39,7 +39,7 @@ class FolderController extends Controller
             }
         }
 
-        if($request->project_id) {
+        if ($request->project_id) {
             $project = Project::find($request->project_id);
             if (!$project) {
                 return response()->json([
@@ -74,6 +74,18 @@ class FolderController extends Controller
         ]);
 
         $parentId = $request->parent_id;
+
+        if ($request->project_id) {
+            $project = Project::find($request->project_id);
+            if (!$project) {
+                return response()->json([
+                    'data' => "Not found",
+                    'message' => 'No such project found',
+                    'status' => 404
+                ], 404);
+            }
+        }
+
         if ($parentId) {
             $parentFolder = Folder::find($parentId);
             if (!$parentFolder) {
