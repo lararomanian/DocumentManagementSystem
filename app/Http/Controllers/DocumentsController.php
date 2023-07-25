@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentsController extends Controller
 {
-    protected $controller, $model;
+    protected $pdf_controller, $controller, $model;
 
     public function __construct()
     {
         $this->controller = new ImageController();
+        $this->pdf_controller = new PdfActivitiesController();
         $this->model = new Documents();
     }
 
@@ -176,41 +177,41 @@ class DocumentsController extends Controller
     }
 
 
-    // public function exportPDF($document)
-    // {
-    //     $documents = Documents::find($document);
+    public function exportPDF($document)
+    {
+        $documents = Documents::find($document);
 
-    //     if ($documents && !empty($documents)) {
-    //         $this->pdf_controller->exportPDF($documents);
-    //         return response()->json([
-    //             'message' => 'Successfully exported pdf',
-    //             'status' => 200
-    //         ], 200);
-    //     }
+        if ($documents && !empty($documents)) {
+            $this->pdf_controller->exportPDF($documents);
+            return response()->json([
+                'message' => 'Successfully exported pdf',
+                'status' => 200
+            ], 200);
+        }
 
-    //     return response()->json([
-    //         'data' => "Not found",
-    //         'message' => 'No such documents found',
-    //         'status' => 404
-    //     ], 404);
-    // }
+        return response()->json([
+            'data' => "Not found",
+            'message' => 'No such documents found',
+            'status' => 404
+        ], 404);
+    }
 
-    // public function exportFolder($folder)
-    // {
-    //     $folder = Folder::where('id', $folder)->with('subfolders')->first();
+    public function exportFolder($folder)
+    {
+        $folder = Folder::where('id', $folder)->with('subfolders')->first();
 
-    //     if ($folder && !empty($folder)) {
-    //         return $this->pdf_controller->exportFolder($folder);
-    //         return response()->json([
-    //             'message' => 'Successfully exported folder',
-    //             'status' => 200
-    //         ], 200);
-    //     }
+        if ($folder && !empty($folder)) {
+            return $this->pdf_controller->exportFolder($folder);
+            return response()->json([
+                'message' => 'Successfully exported folder',
+                'status' => 200
+            ], 200);
+        }
 
-    //     return response()->json([
-    //         'data' => "Not found",
-    //         'message' => 'No such folder found',
-    //         'status' => 404
-    //     ], 404);
-    // }
+        return response()->json([
+            'data' => "Not found",
+            'message' => 'No such folder found',
+            'status' => 404
+        ], 404);
+    }
 }
