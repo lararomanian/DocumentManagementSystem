@@ -24,63 +24,72 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
-
+// Public routes
 Route::group(['middleware' => ['cors', 'json.response']], function () {
-    // public routes
     Route::post('/login', [AuthController::class, 'login'])->name('login.api');
     Route::post('/register', [AuthController::class, 'register'])->name('register.api');
     Route::get('/login/user', [AuthController::class, 'getLoggedUserData'])->name('login.user.api');
 });
 
+// Protected routes
 Route::middleware('auth:api')->group(function () {
+    // User Routes
+    Route::group(['prefix' => 'usermamangement'], function () {
+        Route::get('/', [UserController::class, 'index']);
+        Route::get('/edit/{id}', [UserController::class, 'getUserById']);
+        Route::post('/update/{id}', [UserController::class, 'editUser']);
+        Route::delete('/delete/{id}', [UserController::class, 'deleteUser']);
+        Route::post('/{id}/password', [AuthController::class, 'resetPassword']);
+        Route::get("data", [AuthController::class, 'getLoggedUserData']);
+        Route::post('/toggleStatus', [UserController::class, 'toggleStatus']);
 
-    Route::post('/logout', [AuthController::class, 'logout']);
+    });
 
-    //User Routes
-    Route::get('/users', [UserController::class, 'getAllUsers']);
-    Route::get('/users/{id}', [UserController::class, 'getUserById']);
-    Route::patch('/users/{id}', [UserController::class, 'editUser']);
-    Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
-    Route::patch('/users/{id}/password', [AuthController::class, 'resetPassword']);
-    Route::get("user/data", [AuthController::class, 'getLoggedUserData']);
-    //Role Routes
-    Route::get('/roles', [RolePermissionController::class, 'getAllRoles']);
-    Route::get('/permissions', [RolePermissionController::class, 'getAllPermissions']);
-    Route::post('/roles', [RolePermissionController::class, 'createRole']);
-    Route::patch('/roles/{id}', [RolePermissionController::class, 'updateRole']);
-    Route::delete('/roles/{id}', [RolePermissionController::class, 'deleteRole']);
+    // Role Routes
+    Route::group(['prefix' => 'roles'], function () {
+        Route::get('/', [RolePermissionController::class, 'getAllRoles']);
+        Route::get('/permissions', [RolePermissionController::class, 'getAllPermissions']);
+        Route::post('/store', [RolePermissionController::class, 'createRole']);
+        Route::post('/update/{id}', [RolePermissionController::class, 'updateRole']);
+        Route::delete('/delete/{id}', [RolePermissionController::class, 'deleteRole']);
+    });
 
-    //User Role Routes
+    // User Role Routes
     Route::post('/users/{id}/roles', [UserRoleController::class, 'setRole']);
 
-    //Project Routes
-    Route::get('/projects', [ProjectController::class, 'index']);
-    Route::post('/projects', [ProjectController::class, 'store']);
-    Route::get('/projects/{project}', [ProjectController::class, 'show']);
-    Route::patch('/projects/{project}', [ProjectController::class, 'update']);
-    Route::delete('/projects/{project}', [ProjectController::class, 'destroy']);
-    Route::post('projects/{project}/add-user', [ProjectController::class, 'addUser']);
-    Route::post('projects/{project}/remove-user', [ProjectController::class, 'removeUser']);
-    Route::get('projects/{project}/users', [ProjectController::class, 'getUsersInProject']);
+    // Project Routes
+    Route::group(['prefix' => 'projects'], function () {
+        Route::get('/', [ProjectController::class, 'index']);
+        Route::post('/store', [ProjectController::class, 'store']);
+        Route::get('/edit/{project}', [ProjectController::class, 'show']);
+        Route::post('/update', [ProjectController::class, 'update']);
+        Route::delete('/delete/{project}', [ProjectController::class, 'destroy']);
+        Route::post('add-user/{project}', [ProjectController::class, 'addUser']);
+        Route::post('remove-user/{project}', [ProjectController::class, 'removeUser']);
+        Route::get('users/{project}', [ProjectController::class, 'getUsersInProject']);
+        Route::get('/childs', [ProjectController::class, 'getChilds']);
+    });
 
-    Route::get('/documents', [DocumentsController::class, 'index']);
-    Route::post('/documents', [DocumentsController::class, 'store']);
-    Route::patch('/documents/{documents}', [DocumentsController::class, 'update']);
-    Route::get('/documents/{documents}/show', [DocumentsController::class, 'show']);
-    Route::delete('/documents/{documents}/delete', [DocumentsController::class, 'delete']);
+    // Document Routes
+    Route::group(['prefix' => 'documents'], function () {
+        Route::get('/', [DocumentsController::class, 'index']);
+        Route::post('/store', [DocumentsController::class, 'store']);
+        Route::post('/update/{documents}', [DocumentsController::class, 'update']);
+        Route::get('/edit/{documents}', [DocumentsController::class, 'show']);
+        Route::delete('/delete/{documents}', [DocumentsController::class, 'delete']);
+    });
 
     Route::get('/abilities', [RolePermissionController::class, 'abilities']);
 });
-Route::prefix('folders')->group(function () {
-    Route::get('/', [FolderController::class, 'index']);
-    Route::post('/', [FolderController::class, 'store']);
-    Route::get('/{id}', [FolderController::class, 'show']);
-    Route::patch('/{id}', [FolderController::class, 'update']);
-    Route::delete('/{id}', [FolderController::class, 'destroy']);
-    Route::post('/{parentId}', [FolderController::class, 'store']); // Create subfolder
+
+// Folder Routes
+Route::group(['prefix' => 'folders'], function () {
+    Route::get('/{id}', [FolderController::class, 'index']);
+    Route::post('/store', [FolderController::class, 'store']);
+    Route::get('/edit/{id}', [FolderController::class, 'show']);
+    Route::post('/update/{id}', [FolderController::class, 'update']);
+    Route::delete('/delete/{id}', [FolderController::class, 'destroy']);
 });
 
 Route::get("/folders/{id}/export", [DocumentsController::class, 'exportFolder']);
 Route::get("/documents/{id}/export", [DocumentsController::class, 'exportPDF']);
-
-

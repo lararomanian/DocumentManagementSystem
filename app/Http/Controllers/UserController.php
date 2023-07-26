@@ -8,15 +8,25 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class UserController extends Controller
+class UserController extends BaseCrudController
 {
+
+    public function setup()
+    {
+        $this->model = new User();
+        $this->request = new UserRequest();
+        $this->resource = new UserResource($this->model);
+    }
+
     public function getAllUsers()
     {
-        try{
+        try {
 
             $users = UserResource::collection(User::all());
+
+
             return response()->json(['data' => $users, "message" => "All users fetched successfully", "status" => 200], 200);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage(), "data" => "Something went wrong", "status" => $e->getCode()], $e->getCode());
         }
     }
@@ -25,7 +35,7 @@ class UserController extends Controller
     {
         $user = User::find($id);
         if (!$user) {
-            return response()->json(['data' => 'An Error Occurred' , "message" => "User not found", "status" => 204], 204);
+            return response()->json(['data' => 'An Error Occurred', "message" => "User not found", "status" => 204], 204);
         }
         return response()->json(['data' => $user, "message" => "User data fetched successfully", "status" => 200], 200);
     }
@@ -34,12 +44,12 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(),  $request->rules(), $request->messages());
         if ($validator->fails()) {
-            return response()->json(["data" => "Validation Error",'message' => $validator->errors(), "status" => 422], 422);
+            return response()->json(["data" => "Validation Error", 'message' => $validator->errors(), "status" => 422], 422);
         }
 
         $user = User::find($id);
         if (!$user) {
-            return response()->json(['data' => 'An Error Occurred'  , "message" => "User not found", "status" => 204], 204);
+            return response()->json(['data' => 'An Error Occurred', "message" => "User not found", "status" => 204], 204);
         }
         $user->update($request->all());
 
@@ -52,9 +62,18 @@ class UserController extends Controller
     {
         $user = User::find($id);
         if (!$user) {
-            return response()->json(['data' => 'An Error Occurred' , "message" => "User not found", "status" => 204], 204);
+            return response()->json(['data' => 'An Error Occurred', "message" => "User not found", "status" => 204], 204);
         }
         $user->delete();
         return response()->json(["data" => "User Deleted Successfully", "message" => "User Deleted Successfully", "status" => 200], 200);
+    }
+
+    public function toggleStatus(Request $request)
+    {
+
+        $user = User::find($request->id);
+        $user->status = $user->status == 1 ? 0 : 1;
+        $user->save();
+        return response()->json(['message' => 'Data Updated Successfully', 'data' => $user], 200);
     }
 }

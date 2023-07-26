@@ -8,10 +8,10 @@ use App\Models\Project;
 
 class FolderController extends Controller
 {
-    public function index()
+    public function index($project_id)
     {
-        // $folders = Folder::with('subfolders')->with('documents')->whereNull('parent_id')->get();
-        $folders = Folder::with('subfolders')->with('documents')->whereNull('parent_id')->get()->map->getShortInfo();
+        $folders = Folder::with('subfolders')->with('documents')->whereNull('parent_id')->get();
+        // $folders = Folder::with('subfolders')->with('documents')->where('project_id', $project_id)->whereNull('parent_id')->get()->map->getShortInfo();
         return response()->json(['data' => $folders, 'message' => 'Folders retrieved successfully', 'status' => 200]);
     }
 

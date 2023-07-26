@@ -27,11 +27,12 @@ class ProjectRequest extends FormRequest
         $projectId = $this->route('project');
 
         return [
-            'name' => [
-                'sometimes',
-                'required',
-                Rule::unique('projects')->ignore($projectId),
-            ],
+            // 'name' => [
+            //     'sometimes',
+            //     'required',
+            //     Rule::unique('projects')->ignore($projectId),
+            // ],
+            'name' => 'required',
             "description" => "required",
             "image" => "nullable|image|mimes:jpeg,png,jpg,gif,svg",
             "slug" => "required",
