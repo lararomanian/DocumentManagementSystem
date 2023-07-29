@@ -18,6 +18,7 @@ class Folder extends Model
 
     public function subfolders()
     {
+        // return $this->hasMany(Folder::class, 'parent_id', 'id')->where('project_id', $this->project_id)->with('subfolders')->with('documents');
         return $this->hasMany(Folder::class, 'parent_id', 'id')->with('subfolders')->with('documents');
     }
 
@@ -44,4 +45,18 @@ class Folder extends Model
             'subfolders' => $this->subfolders->map->getShortInfo()
         ];
     }
+
+
+    // public function getShortInfo()
+    // {
+    //     return [
+    //         'fileExt' => '',
+    //         'is_dir' => true,
+    //         'names' => $this->name,
+    //         'paths' => "./files/A1_Main/{$this->name}",
+    //         'the_time' => date('F j, Y \a\t g:i A', strtotime($this->created_at)), // Format the date as desired
+    //         'subfolders' => $this->subfolders->map->getShortInfo(),
+    //         'documents' => $this->documents->map->getDocumentInfo(),
+    //     ];
+    // }
 }

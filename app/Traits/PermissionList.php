@@ -3,7 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Support\Facades\File;
-
+use Spatie\Permission\Models\Permission;
 
 trait PermissionList
 {
@@ -21,6 +21,11 @@ trait PermissionList
             }
         }
 
+        //also add the remaining permission from the table permissions here
+        $permissionsFromTable = Permission::all();
+        foreach ($permissionsFromTable as $permission) {
+            $permissions[] = $permission->name;
+        }
         return $permissions;
     }
 }

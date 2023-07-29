@@ -69,4 +69,13 @@ class Documents extends Model
             'created_by' => $this->user->name,
         ];
     }
+
+    public function getDocumentInfo()
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+        ];
+    }
 }

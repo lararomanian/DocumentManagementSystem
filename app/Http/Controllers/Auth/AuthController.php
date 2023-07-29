@@ -151,7 +151,9 @@ class AuthController extends Controller
     }
 
     public function generatePassword() {
-        $password = Str::random(8) . time() . bin2hex(random_bytes(8));
+        // $password = Str::random(8) . time() . bin2hex(random_bytes(8));
+        $password = Hash::make("password");
         return $password;
+
     }
 }

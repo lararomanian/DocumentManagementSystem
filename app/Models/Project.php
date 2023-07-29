@@ -17,7 +17,12 @@ class Project extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        return $this->hasMany(User::class); // One-to-many relationship
+    }
+
+    public function projectUsers()
+    {
+        return $this->belongsToMany(User::class, ); // Many-to-many relationship
     }
 
     public function getJoinedAtAttribute()
@@ -33,5 +38,12 @@ class Project extends Model
     public function folders()
     {
         return $this->hasMany(Folder::class);
+    }
+
+    public function getAllDocumentCount()
+    {
+        return $this->folders()->withCount(['documents' => function ($query) {
+            $query->where('status', 1);
+        }])->get()->sum('documents_count');
     }
 }

@@ -10,8 +10,7 @@ class FolderController extends Controller
 {
     public function index($project_id)
     {
-        $folders = Folder::with('subfolders')->with('documents')->whereNull('parent_id')->get();
-        // $folders = Folder::with('subfolders')->with('documents')->where('project_id', $project_id)->whereNull('parent_id')->get()->map->getShortInfo();
+        $folders = Folder::with('subfolders')->with('documents')->where('project_id', $project_id)->whereNull('parent_id')->get();
         return response()->json(['data' => $folders, 'message' => 'Folders retrieved successfully', 'status' => 200]);
     }
 
@@ -110,6 +109,9 @@ class FolderController extends Controller
     {
         $folder = Folder::find($id);
 
+        if($folder->parent_id == null ){
+            return response()->json(['message' => 'Root Folder Cannot Be Deleted', 'status' => 500]);
+        }
         if ($folder && !empty($folder)) {
             $folder->delete();
             return response()->json(['message' => 'Folder deleted successfully', 'status' => 200]);

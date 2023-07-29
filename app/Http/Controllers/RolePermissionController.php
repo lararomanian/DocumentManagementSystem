@@ -2,104 +2,112 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RolePermissionRequest;
+use App\Http\Resources\RolePermissionResource;
 use App\Models\User;
+use App\Traits\PermissionList;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
-class RolePermissionController extends Controller
+class RolePermissionController extends BaseCrudController
 {
-    public function getAllRoles()
+    use PermissionList;
+    public function __construct()
     {
-        try {
-            $roles = Role::where('is_deleted', false)->get(['id', 'name']);
-            return response()->json(['data' => $roles, "message" => "All roles fetched successfully", "status" => 200], 200);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage(), "data" => "Something went wrong", "status" => $e->getCode()], $e->getCode());
-        }
+        $this->query = (object) Role::where('name', '!=', 'admin');
+        $this->request = new RolePermissionRequest();
+        $this->sort_term = "name";
     }
 
-    public function getAllPermissions()
+    public function index(Request $request)
     {
-        try {
-            $permissions = Permission::all(['id', 'name']);
-            $permissions = $permissions->groupBy(function ($item, $key) {
-                return explode('.', $item['name'])[0];
-            });
-            return response()->json(['data' => $permissions, "message" => "All Permissions fetched successfully", "status" => 200], 200);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage(), "data" => "Something went wrong", "status" => $e->getCode()], $e->getCode());
+
+        // return response()->json(gettype(Role::all()));
+        $per_page = $request->per_page ?? 10;
+        if (count($this->with)) {
+            $this->query->with(implode(',', $this->with));
         }
+
+        if ($request->sort) {
+            $this->sort($request->sort);
+        }
+
+        if ($request->search) {
+            $this->search($request->search);
+        }
+
+        if ($request->filters) {
+            $this->filter($request->filters);
+        }
+
+        return $this->returnResponse($per_page);
+    }
+
+    public function returnResponse($per_page)
+    {
+        return RolePermissionResource::collection($this->query->orderBy('created_at', 'desc')->where('is_deleted', false)->paginate($per_page)->appends(request()->query()));
+    }
+
+    public function search($search)
+    {
+        $this->query->where(function ($query) use ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        });
+    }
+
+    public function list()
+    {
+        $lists = $this->permissionList();
+        return response()->json($lists);
     }
 
 
-    public function createRole(Request $request)
-    {
 
-        try {
-            $request->validate([
-                'name' => 'required|unique:roles,name'
+    public function store(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            $this->request->rules(),
+            $this->request->messages()
+        );
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        } else {
+            // return response()->json($request->all());
+            $role = Role::create([
+                'name' => $request['name'],
+                'guard_name' => 'web'
             ]);
 
-            $role = Role::create(['name' => $request->name, 'guard_name' => 'web']);
+            $permissions = $this->getValidPermissions($request['permissions']);
+            $role->syncPermissions($permissions);
 
-            $permissions = $request->permissions;
-
-            foreach ($permissions as $permission) {
-                if (!$role->hasPermissionTo($permission)) {
-                    $role->givePermissionTo($permission);
-                }
-            }
-            return response()->json(["data" => $role, 'message' => 'Role created successfully', "status" => 200],200);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage(), "data" => "Something went wrong", "status" => $e->getCode()], $e->getCode());
+            $this->setAdminRole();
+            return response()->json(['message' => 'Data Created Successfully', 'data' => $role], 200);
         }
     }
 
-    public function updateRole(Request $request, $id)
-    {
-        try {
-            $request->validate([
-                'name' => 'required'
-            ]);
 
-            $role = Role::where('id', $id)->first();
-            if (!$role) {
-                return response()->json(["data" => "An Error Occurred",'message' => 'Role Not Found', "status" => 204], 204);
-            }
-            $role->syncPermissions($request->permissions);
+    public function update(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            $this->request->rules(),
+            $this->request->messages()
+        );
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        } else {
+            $role = Role::where('id', $request['id'])->first();
+            $permissions = $this->getValidPermissions($request['permissions']);
+            $role->syncPermissions($permissions);
             $role->name = $request['name'];
             $role->save();
 
-            return response()->json(['message' => 'Data Updated Successfully', 'data' => $role, "status" => 200], 200);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage(), "data" => "Something went wrong", "status" => $e->getCode()], $e->getCode());
-        }
-    }
-
-    public function deleteRole($id)
-    {
-        try {
-            $data = Role::find($id);
-            $users = User::all();
-
-            if (!$data) {
-                return response()->json(['error' => 'Bad Request !!'], 404);
-            } else {
-                foreach ($users as $user) {
-                    if ($user->hasRole($data->name)) {
-                        $user->removeRole($data->name);
-                    }
-                }
-                $data->is_deleted = true;
-                $data->save();
-
-                $data->delete();
-                return response()->json(["data" => "Role deleted successfully", 'message' => 'Role deleted successfully', "status" => 200], 200);
-            }
-            return response()->json(['data' => 'Error Deleting Data !', "message" => "Error Deleting Data !", "status" => 500], 500);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage(), "data" => "Something went wrong", "status" => $e->getCode()], $e->getCode());
+            $this->setAdminRole();
+            return response()->json(['message' => 'Data Updated Successfully', 'data' => $role], 200);
         }
     }
 
@@ -108,4 +116,43 @@ class RolePermissionController extends Controller
         return auth()->user()->jsPermissions();
     }
 
+    public function delete($id)
+    {
+        $data = Role::find($id);
+        $users = User::all();
+
+        if (!$data) {
+            return response()->json(['error' => 'Bad Request !!'], 404);
+        } else {
+            foreach ($users as $user) {
+                if ($user->hasRole($data->name)) {
+                    $user->removeRole($data->name);
+                }
+            }
+            $data->is_deleted = true;
+            $data->save();
+            return response()->json(['message' => 'Role Deleted !']);
+        }
+        return response()->json(['error' => 'Error Deleting Data !']);
+    }
+
+    private function getValidPermissions(array $permissions)
+    {
+        $validPermissions = [];
+        foreach ($permissions as $permission) {
+            $permission = Permission::where('name', $permission)->where('guard_name', 'web')->first();
+            if ($permission) {
+                $validPermissions[] = $permission;
+            }
+        }
+        return $validPermissions;
+    }
+
+    public function setAdminRole()
+    {
+        $role = Role::where('name', 'admin')->first();
+
+        $permissions = $this->permissionList();
+        $role->syncPermissions($permissions);
+    }
 }

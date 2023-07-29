@@ -6,10 +6,13 @@ use App\Http\Requests\DocumentRequest;
 use App\Http\Requests\ProjectRequest;
 use App\Http\Resources\DocumentResource;
 use App\Http\Resources\ProjectResource;
+use App\Models\Folder;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class ProjectController extends BaseCrudController
 {
@@ -21,34 +24,34 @@ class ProjectController extends BaseCrudController
         $this->resource = new ProjectResource($this->model);
     }
 
-    // public function store(ProjectRequest $request)
-    // {
+    public function store(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            $this->request->rules(),
+            $this->request->messages(),
+            $this->request->attributes(),
+        );
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
-    //     $validator = Validator::make($request->all(),  $request->rules(), $request->messages());
+        $data = $request->only($this->model->getFillable());
+        $data = array_merge($data, $this->defaultData('create'));
 
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'data' => $validator->errors(),
-    //             'message' => 'Validation failed',
-    //             'status' => 422
-    //         ], 422);
-    //     }
+        $role = $this->createProjectPermissions($data['name']);
+        $item = $this->model->create($data);
 
-    //     try {
-    //         $project = Project::create($request->all());
-    //         return response()->json([
-    //             'data' => $project,
-    //             'message' => 'Successfully created project',
-    //             'status' => 200
-    //         ], 200);
-    //     } catch (\Throwable $th) {
-    //         return response()->json([
-    //             'data' => $th->getMessage(),
-    //             'message' => 'Failed to create project',
-    //             'status' => $th->getCode()
-    //         ], $th->getCode());
-    //     }
-    // }
+        $initialFolder = new Folder([
+            'name' => 'Root Folder',
+            'parent_id' => null,
+            'project_id' => $item->id, // Assuming you have a 'project_id' field in the Folder model
+            'created_at' => now(),
+        ]);
+        $initialFolder->save();
+
+        return response()->json(['message' => 'Data Created Successfully !!!', 'data' => $item], 200);
+    }
 
     public function show(Project $project)
     {
@@ -109,19 +112,36 @@ class ProjectController extends BaseCrudController
     }
 
 
-    public function addUser(Request $request, Project $project)
+    public function addUser(Request $request, $projectId)
     {
-        $user = User::findOrFail($request->user_id);
-        $project->users()->attach($user);
+        $project = Project::find($projectId);
 
-        return response()->json(
-            [
-                'data' => $project,
-                'message' => 'User added to the project successfully',
-                'status' => 200
-            ],
-            200
-        );
+        if (!$project) {
+            return response()->json([
+                'data' => null,
+                'message' => 'Project not found',
+                'status' => 404
+            ], 404);
+        }
+
+        $user = User::find($request->user_id);
+
+        if (!$user) {
+            return response()->json([
+                'data' => null,
+                'message' => 'User not found',
+                'status' => 404
+            ], 404);
+        }
+
+        // Assuming you want to add the user to the project_users many-to-many relationship
+        $project->projectUsers()->attach($user->id);
+
+        return response()->json([
+            'data' => null,
+            'message' => 'User added to project successfully',
+            'status' => 200
+        ], 200);
     }
 
     public function removeUser(Request $request, Project $project)
@@ -142,6 +162,7 @@ class ProjectController extends BaseCrudController
     public function getUsersInProject(Project $project)
     {
         try {
+
             $users = $project->users->map(function ($user) {
                 return collect($user)->only(['id', 'name', 'email', 'created_at']);
             });
@@ -205,6 +226,64 @@ class ProjectController extends BaseCrudController
             ],
             200
         );
+    }
+
+    public function getAllProjects()
+    {
+        $projects = Project::where('status', 1)->get(['id', 'name']);
+        return response()->json(
+            [
+                'data' => $projects,
+                'message' => 'Successfully retrieved projects',
+                'status' => 200
+            ],
+            200
+        );
+    }
+
+    public function getAllProjectAndUsers()
+    {
+
+        $projects = Project::where('status', 1)->with('projectUsers')->get(['id', 'name']);
+
+        //map the users to get only the pivot table data
+        // $projects = $projects->map(function ($project) {
+        //     $project->users = $project->projectUsers->map(function ($user) {
+        //         return collect($user)->only(['id', 'name', 'email', 'created_at']);
+        //     });
+        //     return collect($project)->only(['id', 'name', 'users']);
+        // });
+
+        return response()->json(
+            [
+                'data' => $projects,
+                'message' => 'Successfully retrieved projects',
+                'status' => 200
+            ],
+            200
+        );
+    }
+
+    public function createProjectPermissions($project)
+    {
+        $project = strtolower($project);
+        $permissions = [
+            $project . '.view',
+            $project . '.create',
+            $project . '.update',
+            $project . '.delete',
+        ];
+
+        $createdPermissions = [];
+        foreach ($permissions as $permissionName) {
+            $permission = Permission::firstOrCreate(
+                ['name' => $permissionName, 'guard_name' => 'web'],
+                ['guard_name' => 'web']
+            );
+            $createdPermissions[] = $permission;
+        }
+
+        return $createdPermissions;
     }
 
 }

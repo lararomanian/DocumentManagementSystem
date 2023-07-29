@@ -2,18 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\View;
 use ZipArchive;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class PdfActivitiesController extends Controller
 {
-    public function exportPDF()
+    public function exportPDF($documents)
     {
-        return response()->json('exported pdf');
+        $ocr_text = $documents->ocr_text;
+        $document_name = $documents->name;
+
+        $data = [
+            'ocr_text' => $ocr_text,
+            'document_name' => $document_name
+        ];
+
+        $pdf = Pdf::loadView('pdf_template', compact('data'));
+        return $pdf->download('pdf_template.pdf');
     }
 
     public function exportFolder($folder)

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentsController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\ImageController;
@@ -42,44 +43,51 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/{id}/password', [AuthController::class, 'resetPassword']);
         Route::get("data", [AuthController::class, 'getLoggedUserData']);
         Route::post('/toggleStatus', [UserController::class, 'toggleStatus']);
-
+        Route::get("/all", [UserController::class, 'getAllUsers']);
     });
 
-    // Role Routes
-    Route::group(['prefix' => 'roles'], function () {
-        Route::get('/', [RolePermissionController::class, 'getAllRoles']);
-        Route::get('/permissions', [RolePermissionController::class, 'getAllPermissions']);
-        Route::post('/store', [RolePermissionController::class, 'createRole']);
-        Route::post('/update/{id}', [RolePermissionController::class, 'updateRole']);
-        Route::delete('/delete/{id}', [RolePermissionController::class, 'deleteRole']);
+    // // Role Routes
+    // Route::group(['prefix' => 'roles'], function () {
+    //     Route::get('/', [RolePermissionController::class, 'getAllRoles']);
+    //     Route::get('/permissions', [RolePermissionController::class, 'getAllPermissions']);
+    //     Route::post('/store', [RolePermissionController::class, 'createRole']);
+    //     Route::post('/update/{id}', [RolePermissionController::class, 'updateRole']);
+    //     Route::delete('/delete/{id}', [RolePermissionController::class, 'deleteRole']);
+    // });
+
+    Route::group(['prefix' => 'rolepermission'], function () {
+        Route::get('/', [RolePermissionController::class, 'index']);
+        Route::get('/list', [RolePermissionController::class, 'list']);
+        Route::post('store', [RolePermissionController::class, 'store']);
+        Route::post('update', [RolePermissionController::class, 'update']);
+        Route::delete('/delete/{id}', [RolePermissionController::class, 'delete']);
     });
 
     // User Role Routes
-    Route::post('/users/{id}/roles', [UserRoleController::class, 'setRole']);
+    // Route::post('/users/{id}/roles', [UserRoleController::class, 'setRole']);
+    Route::group(['prefix' => 'user-role'], function () {
+        Route::get('/', [UserRoleController::class, 'index']);
+        Route::get('/roles', [UserRoleController::class, 'roles']);
+        Route::post('update', [UserRoleController::class, 'update']);
+    });
 
     // Project Routes
-    Route::group(['prefix' => 'projects'], function () {
-        Route::get('/', [ProjectController::class, 'index']);
-        Route::post('/store', [ProjectController::class, 'store']);
-        Route::get('/edit/{project}', [ProjectController::class, 'show']);
-        Route::post('/update', [ProjectController::class, 'update']);
-        Route::delete('/delete/{project}', [ProjectController::class, 'destroy']);
-        Route::post('add-user/{project}', [ProjectController::class, 'addUser']);
-        Route::post('remove-user/{project}', [ProjectController::class, 'removeUser']);
-        Route::get('users/{project}', [ProjectController::class, 'getUsersInProject']);
-        Route::get('/childs', [ProjectController::class, 'getChilds']);
-    });
 
     // Document Routes
     Route::group(['prefix' => 'documents'], function () {
         Route::get('/', [DocumentsController::class, 'index']);
         Route::post('/store', [DocumentsController::class, 'store']);
-        Route::post('/update/{documents}', [DocumentsController::class, 'update']);
+        Route::post('/update', [DocumentsController::class, 'update']);
         Route::get('/edit/{documents}', [DocumentsController::class, 'show']);
         Route::delete('/delete/{documents}', [DocumentsController::class, 'delete']);
+        Route::get('/all', [ProjectController::class, 'getAllProjects']);
     });
 
     Route::get('/abilities', [RolePermissionController::class, 'abilities']);
+
+    Route::group(['prefix' => 'dashboard'], function () {
+        Route::get('/', [DashboardController::class, 'getHomeProjects']);
+    });
 });
 
 // Folder Routes
@@ -93,3 +101,17 @@ Route::group(['prefix' => 'folders'], function () {
 
 Route::get("/folders/{id}/export", [DocumentsController::class, 'exportFolder']);
 Route::get("/documents/{id}/export", [DocumentsController::class, 'exportPDF']);
+
+Route::get('/projects/users/{project}', [ProjectController::class, 'getUsersInProject']);
+Route::get('/projects/user/all', [ProjectController::class, 'getAllProjectAndUsers']);
+
+Route::group(['prefix' => 'projects'], function () {
+    Route::get('/', [ProjectController::class, 'index']);
+    Route::post('/store', [ProjectController::class, 'store']);
+    Route::get('/edit/{project}', [ProjectController::class, 'show']);
+    Route::post('/update', [ProjectController::class, 'update']);
+    Route::delete('/delete/{project}', [ProjectController::class, 'destroy']);
+    Route::post('add-user/{project}', [ProjectController::class, 'addUser']);
+    Route::post('remove-user/{project}', [ProjectController::class, 'removeUser']);
+    Route::get('/childs', [ProjectController::class, 'getChilds']);
+});

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DocumentRequest;
+use App\Http\Resources\DocumentResource;
 use App\Models\Documents;
 use App\Models\Folder;
 use Illuminate\Http\Request;
@@ -12,23 +13,85 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentsController extends Controller
 {
-    protected $pdf_controller, $controller, $model;
+    protected $pdf_controller, $controller, $model, $query, $resource;
+    protected $with = [];
+    protected $search_terms = [];
 
     public function __construct()
     {
         $this->controller = new ImageController();
         $this->pdf_controller = new PdfActivitiesController();
         $this->model = new Documents();
+        $this->query = $this->model->query();
+        $this->resource = new DocumentResource($this->model);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $documents = Documents::all()->map->getShortInfo();
-        return response()->json([
-            'data' => $documents,
-            'message' => 'Successfully retrieved documents',
-            'status' => 200
-        ], 200);
+        $per_page = $request->per_page ?? 10;
+        if (count($this->with)) {
+            $this->query->with(implode(',', $this->with));
+        }
+
+        if ($request->sort) {
+            $this->sort($request->sort);
+        }
+
+        if ($request->search) {
+            $this->search($request->search);
+        }
+
+        if ($request->filters) {
+            $this->filter($request->filters);
+        }
+
+        // return response()->json($this->model->paginate($per_page));
+        return $this->returnResponse($per_page);
+    }
+
+    public function sort($sort)
+    {
+        switch ($sort) {
+            case 'a-z':
+                $this->query->orderBy($this->sort_term, 'ASC');
+                break;
+            case 'n-o':
+                $this->query->orderBy('created_at', 'DESC');
+                break;
+            case 'o-n':
+                $this->query->orderBy('created_at', 'ASC');
+                break;
+
+            default:
+
+                break;
+        }
+    }
+
+    public function returnResponse($per_page)
+    {
+        return $this->resource::collection($this->query->orderBy('created_at', 'desc')->paginate($per_page)->appends(request()->query()));
+    }
+
+    public function search($search)
+    {
+        $search_terms = $this->search_terms;
+        $this->query->where(function ($query) use ($search_terms, $search) {
+            foreach ($search_terms as $term) {
+                $query->orWhere($term, 'like', '%' . $search . '%');
+            }
+        });
+    }
+
+    public function filter($filters)
+    {
+        $filters = json_decode($filters);
+        if ($filters->from_date) {
+            $this->query->where('created_at', '>=', $filters->from_date);
+        }
+        if ($filters->to_date) {
+            $this->query->where('created_at', '<=', $filters->to_date);
+        }
     }
 
     public function store(DocumentRequest $request)
@@ -77,7 +140,7 @@ class DocumentsController extends Controller
         }
     }
 
-    public function update(Request $request, $documents)
+    public function update(Request $request)
     {
         // $validator = Validator::make($request->all(),  $request->rules(), $request->messages());
 
@@ -101,14 +164,14 @@ class DocumentsController extends Controller
                 ], 404);
             }
 
-            $document = Documents::find($documents);
+            $document = Documents::find($request->id);
             $document->update($request->all());
             if ($request->ocr_text) {
                 $document->ocr_text = $request->ocr_text;
                 $document->save();
             }
             return response()->json([
-                'data' => $documents,
+                'data' => $document,
                 'message' => 'Successfully updated documents',
                 'status' => 200
             ], 200);
@@ -182,7 +245,8 @@ class DocumentsController extends Controller
         $documents = Documents::find($document);
 
         if ($documents && !empty($documents)) {
-            $this->pdf_controller->exportPDF($documents);
+        return    $this->pdf_controller->exportPDF($documents);
+
             return response()->json([
                 'message' => 'Successfully exported pdf',
                 'status' => 200
@@ -214,4 +278,5 @@ class DocumentsController extends Controller
             'status' => 404
         ], 404);
     }
+
 }
