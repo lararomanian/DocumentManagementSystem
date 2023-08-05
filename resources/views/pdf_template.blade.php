@@ -36,7 +36,9 @@
 </head>
 <body>
     <h1>{{$data['document_name']}}</h1>
-    <p>{{ $data['ocr_text'] }}</p>
+    <pre>
+        {{ $data['ocr_text'] }}
+    </pre>
 
     <!-- Add a page break if necessary -->
     <!-- <div class="page-break"></div> -->

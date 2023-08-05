@@ -283,7 +283,8 @@ class ProjectController extends BaseCrudController
             $createdPermissions[] = $permission;
         }
 
+        $role = Role::first(['name' => 'admin']);
+        $role->givePermissionTo($createdPermissions);
         return $createdPermissions;
     }
-
 }

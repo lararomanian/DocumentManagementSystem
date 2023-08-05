@@ -11,7 +11,7 @@ class FolderController extends Controller
     public function index($project_id)
     {
         $folders = Folder::with('subfolders')->with('documents')->where('project_id', $project_id)->whereNull('parent_id')->get();
-        return response()->json(['data' => $folders, 'message' => 'Folders retrieved successfully', 'status' => 200]);
+        return response()->json(['data' => $folders[0], 'message' => 'Folders retrieved successfully', 'status' => 200]);
     }
 
     public function store(Request $request, $parentId = null)

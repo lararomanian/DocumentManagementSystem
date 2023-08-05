@@ -84,20 +84,34 @@ class ImageController extends Controller
         return $this->scanImages($pdf_images_folder, $lang);
     }
 
+    // private function scanImages($imagesFolder, $lang)
+    // {
+    //     $combinedText = '';
+    //     $imageFiles = glob($imagesFolder . '/*.png');
+
+    //     foreach ($imageFiles as $imageFile) {
+    //         $ocr = new TesseractOCR($imageFile);
+    //         $ocr->setTempDir(storage_path('app/tmp')); // Setting a temporary directory for Tesseract to use
+    //         $combinedText .= $ocr->lang($lang)->run(); // Performing OCR and append the extracted text to the result
+    //     }
+
+    //     return $combinedText;
+    // }
+
     private function scanImages($imagesFolder, $lang)
-    {
-        $combinedText = '';
-        $imageFiles = glob($imagesFolder . '/*.png');
+{
+    $combinedText = '';
+    $imageFiles = glob($imagesFolder . '/*.png');
 
-        foreach ($imageFiles as $imageFile) {
-            $ocr = new TesseractOCR($imageFile);
-            $ocr->setTempDir(storage_path('app/tmp')); // Setting a temporary directory for Tesseract to use
-            $combinedText .= $ocr->lang($lang)->run(); // Performing OCR and append the extracted text to the result
-        }
-
-        return $combinedText;
+    foreach ($imageFiles as $imageFile) {
+        $ocr = new TesseractOCR($imageFile);
+        $ocr->setTempDir(storage_path('app/tmp')); // Setting a temporary directory for Tesseract to use
+        $ocr->preserveInterwordSpaces(); // Add the preserve_interword_spaces option
+        $combinedText .= $ocr->lang($lang)->run(); // Performing OCR and append the extracted text to the result
     }
 
+    return $combinedText;
+}
     // public function ocrEngine(Request $request)
     // {
         // $this->convertPdfToImage($request);
