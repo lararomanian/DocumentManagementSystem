@@ -19,13 +19,27 @@ class PdfActivitiesController extends Controller
         $ocr_text = $documents->ocr_text;
         $document_name = $documents->name;
 
+        $sanitizedOcrText = $this->sanitizeHtml($ocr_text);
+        $plainText = strip_tags($sanitizedOcrText);
+
         $data = [
-            'ocr_text' => $ocr_text,
+            'ocr_text' => $plainText,
             'document_name' => $document_name
         ];
 
-        $pdf = Pdf::loadView('pdf_template', compact('data'));
+        $pdf = PDF::loadView('pdf_template', compact('data'));
+
         return $pdf->download('pdf_template.pdf');
+    }
+
+    private function sanitizeHtml($input)
+    {
+        $allowedTags = '<p><br><strong><em><ul><ol><li><span>';
+        $cleanedHtml = strip_tags($input, $allowedTags);
+
+        $cleanedHtml = preg_replace('/<(.*?)>/i', '<$1>', $cleanedHtml);
+
+        return $cleanedHtml;
     }
 
     public function exportFolder($folder)

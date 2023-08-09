@@ -51,6 +51,7 @@ class ImageController extends Controller
         foreach ($imageFiles as $imageFile) {
             $text = (new TesseractOCR($imageFile))
                 ->lang($request->lang)
+                ->config('tessedit_create_hocr', '1')
                 ->run();
             $textResults[] = $text;
         }

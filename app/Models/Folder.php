@@ -46,6 +46,19 @@ class Folder extends Model
         ];
     }
 
+    public function getAllSubfoldersAndDocuments()
+    {
+        $allData = $this->getShortInfo();
+
+        if ($this->subfolders) {
+            foreach ($this->subfolders as $subfolder) {
+                $allData['subfolders'] = array_merge($allData['subfolders'], $subfolder->getAllSubfoldersAndDocuments()['subfolders']);
+                $allData['documents'] = array_merge($allData['documents'], $subfolder->getAllSubfoldersAndDocuments()['documents']);
+            }
+        }
+
+        return $allData;
+    }
 
     // public function getShortInfo()
     // {

@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            /* font-family: nepali_english_font, sans-serif; */
+            font-family: DejaVu Sans, sans-serif, Preeti;
             line-height: 1.6;
             margin: 40px;
         }
@@ -36,9 +38,9 @@
 </head>
 <body>
     <h1>{{$data['document_name']}}</h1>
-    <pre>
-        {{ $data['ocr_text'] }}
-    </pre>
+    <p>
+        {!! nl2br($data['ocr_text']) !!}
+    </p>
 
     <!-- Add a page break if necessary -->
     <!-- <div class="page-break"></div> -->

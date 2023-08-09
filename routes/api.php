@@ -115,3 +115,5 @@ Route::group(['prefix' => 'projects'], function () {
     Route::post('remove-user/{project}', [ProjectController::class, 'removeUser']);
     Route::get('/childs', [ProjectController::class, 'getChilds']);
 });
+
+Route::get('/projects/{projectId}/folders', 'FolderController@getProjectFoldersWithSubfoldersAndDocuments');

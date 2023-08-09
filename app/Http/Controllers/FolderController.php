@@ -11,7 +11,7 @@ class FolderController extends Controller
     public function index($project_id)
     {
         $folders = Folder::with('subfolders')->with('documents')->where('project_id', $project_id)->whereNull('parent_id')->get();
-        return response()->json(['data' => $folders[0], 'message' => 'Folders retrieved successfully', 'status' => 200]);
+        return response()->json(['data' => $folders, 'message' => 'Folders retrieved successfully', 'status' => 200]);
     }
 
     public function store(Request $request, $parentId = null)
@@ -122,5 +122,24 @@ class FolderController extends Controller
             'message' => 'No such folder found',
             'status' => 404
         ], 404);
+    }
+
+    public function getProjectFoldersWithSubfoldersAndDocuments($projectId)
+    {
+        $project = Project::findOrFail($projectId);
+
+        $projectData = [
+            'project_id' => $project->id,
+            'name' => $project->name,
+            'folders' => [],
+        ];
+
+        $rootFolders = $project->folders->where('parent_id', null);
+
+        foreach ($rootFolders as $rootFolder) {
+            $projectData['folders'][] = $rootFolder->getAllSubfoldersAndDocuments();
+        }
+
+        return response()->json($projectData);
     }
 }
