@@ -6,6 +6,7 @@ use App\Http\Requests\DocumentRequest;
 use App\Http\Requests\ProjectRequest;
 use App\Http\Resources\DocumentResource;
 use App\Http\Resources\ProjectResource;
+use App\Http\Resources\ProjectUserResource;
 use App\Models\Folder;
 use App\Models\Project;
 use App\Models\User;
@@ -112,34 +113,30 @@ class ProjectController extends BaseCrudController
     }
 
 
-    public function addUser(Request $request, $projectId)
+    public function addUser(Request $request)
     {
-        $project = Project::find($projectId);
+        $user_ids = $request->user_id;
+        $project = Project::findOrFail($request->project_id);
 
-        if (!$project) {
+        $users = User::whereIn('id', $user_ids)->get();
+
+        if ($users->isEmpty()) {
             return response()->json([
                 'data' => null,
-                'message' => 'Project not found',
+                'message' => 'User(s) not found',
                 'status' => 404
             ], 404);
         }
 
-        $user = User::find($request->user_id);
+        // Detach all existing users from the project
+        $project->projectUsers()->detach();
 
-        if (!$user) {
-            return response()->json([
-                'data' => null,
-                'message' => 'User not found',
-                'status' => 404
-            ], 404);
-        }
-
-        // Assuming you want to add the user to the project_users many-to-many relationship
-        $project->projectUsers()->attach($user->id);
+        // Attach the new users
+        $project->projectUsers()->attach($users);
 
         return response()->json([
             'data' => null,
-            'message' => 'User added to project successfully',
+            'message' => 'User(s) added to project successfully',
             'status' => 200
         ], 200);
     }
@@ -231,10 +228,38 @@ class ProjectController extends BaseCrudController
     public function getAllProjects()
     {
         $projects = Project::where('status', 1)->get(['id', 'name']);
+
+        // $projects = $projects->map(function ($item) {
+        //     $item->label = $item->name;
+        //     $item->id = $item->id;
+        //     return $item;
+        // });
+
         return response()->json(
             [
                 'data' => $projects,
-                'message' => 'Successfully retrieved projects',
+                'message' => 'Successfully retrieved projects 123',
+                'status' => 200
+            ],
+            200
+        );
+    }
+
+    public function getAllUsers()
+    {
+
+        $users = User::all(['id', 'name', 'email']);
+
+        $users = $users->map(function ($item) {
+            $item->label = $item->name;
+            $item->id = $item->id;
+            return $item;
+        });
+
+        return response()->json(
+            [
+                'data' => $users,
+                'message' => 'Successfully retrieved users',
                 'status' => 200
             ],
             200
@@ -286,5 +311,41 @@ class ProjectController extends BaseCrudController
         $role = Role::first(['name' => 'admin']);
         $role->givePermissionTo($createdPermissions);
         return $createdPermissions;
+    }
+
+    public function index(Request $request)
+    {
+
+        // return response()->json(gettype(Role::all()));
+        $per_page = $request->per_page ?? 10;
+        if (count($this->with)) {
+            $this->query->with(implode(',', $this->with));
+        }
+
+        if ($request->sort) {
+            $this->sort($request->sort);
+        }
+
+        if ($request->search) {
+            $this->search($request->search);
+        }
+
+        if ($request->filters) {
+            $this->filter($request->filters);
+        }
+
+        return $this->returnResponse($per_page);
+    }
+
+    public function returnResponse($per_page)
+    {
+        return ProjectUserResource::collection($this->query->orderBy('created_at', 'desc')->paginate($per_page)->appends(request()->query()));
+    }
+
+    public function search($search)
+    {
+        $this->query->where(function ($query) use ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        });
     }
 }

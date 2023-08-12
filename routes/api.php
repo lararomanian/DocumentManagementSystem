@@ -81,6 +81,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/edit/{documents}', [DocumentsController::class, 'show']);
         Route::delete('/delete/{documents}', [DocumentsController::class, 'delete']);
         Route::get('/all', [ProjectController::class, 'getAllProjects']);
+        Route::get('/users', [ProjectController::class, 'getAllUsers']);
     });
 
     Route::get('/abilities', [RolePermissionController::class, 'abilities']);
@@ -104,6 +105,8 @@ Route::get("/documents/{id}/export", [DocumentsController::class, 'exportPDF']);
 
 Route::get('/projects/users/{project}', [ProjectController::class, 'getUsersInProject']);
 Route::get('/projects/user/all', [ProjectController::class, 'getAllProjectAndUsers']);
+Route::get('/projects/user/total', [ProjectController::class, 'index']);
+
 
 Route::group(['prefix' => 'projects'], function () {
     Route::get('/', [ProjectController::class, 'index']);
@@ -111,7 +114,7 @@ Route::group(['prefix' => 'projects'], function () {
     Route::get('/edit/{project}', [ProjectController::class, 'show']);
     Route::post('/update', [ProjectController::class, 'update']);
     Route::delete('/delete/{project}', [ProjectController::class, 'destroy']);
-    Route::post('add-user/{project}', [ProjectController::class, 'addUser']);
+    Route::post('add-user', [ProjectController::class, 'addUser']);
     Route::post('remove-user/{project}', [ProjectController::class, 'removeUser']);
     Route::get('/childs', [ProjectController::class, 'getChilds']);
 });
