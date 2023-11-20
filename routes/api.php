@@ -34,61 +34,7 @@ Route::group(['middleware' => ['cors', 'json.response']], function () {
 
 // Protected routes
 Route::middleware('auth:api')->group(function () {
-    // User Routes
-    Route::group(['prefix' => 'usermamangement'], function () {
-        Route::get('/', [UserController::class, 'index']);
-        Route::get('/edit/{id}', [UserController::class, 'getUserById']);
-        Route::post('/update/{id}', [UserController::class, 'editUser']);
-        Route::delete('/delete/{id}', [UserController::class, 'deleteUser']);
-        Route::post('/{id}/password', [AuthController::class, 'resetPassword']);
-        Route::get("data", [AuthController::class, 'getLoggedUserData']);
-        Route::post('/toggleStatus', [UserController::class, 'toggleStatus']);
-        Route::get("/all", [UserController::class, 'getAllUsers']);
-    });
 
-    // // Role Routes
-    // Route::group(['prefix' => 'roles'], function () {
-    //     Route::get('/', [RolePermissionController::class, 'getAllRoles']);
-    //     Route::get('/permissions', [RolePermissionController::class, 'getAllPermissions']);
-    //     Route::post('/store', [RolePermissionController::class, 'createRole']);
-    //     Route::post('/update/{id}', [RolePermissionController::class, 'updateRole']);
-    //     Route::delete('/delete/{id}', [RolePermissionController::class, 'deleteRole']);
-    // });
-
-    Route::group(['prefix' => 'rolepermission'], function () {
-        Route::get('/', [RolePermissionController::class, 'index']);
-        Route::get('/list', [RolePermissionController::class, 'list']);
-        Route::post('store', [RolePermissionController::class, 'store']);
-        Route::post('update', [RolePermissionController::class, 'update']);
-        Route::delete('/delete/{id}', [RolePermissionController::class, 'delete']);
-    });
-
-    // User Role Routes
-    // Route::post('/users/{id}/roles', [UserRoleController::class, 'setRole']);
-    Route::group(['prefix' => 'user-role'], function () {
-        Route::get('/', [UserRoleController::class, 'index']);
-        Route::get('/roles', [UserRoleController::class, 'roles']);
-        Route::post('update', [UserRoleController::class, 'update']);
-    });
-
-    // Project Routes
-
-    // Document Routes
-    Route::group(['prefix' => 'documents'], function () {
-        Route::get('/', [DocumentsController::class, 'index']);
-        Route::post('/store', [DocumentsController::class, 'store']);
-        Route::post('/update', [DocumentsController::class, 'update']);
-        Route::get('/edit/{documents}', [DocumentsController::class, 'show']);
-        Route::delete('/delete/{documents}', [DocumentsController::class, 'delete']);
-        Route::get('/all', [ProjectController::class, 'getAllProjects']);
-        Route::get('/users', [ProjectController::class, 'getAllUsers']);
-    });
-
-    Route::get('/abilities', [RolePermissionController::class, 'abilities']);
-
-    Route::group(['prefix' => 'dashboard'], function () {
-        Route::get('/', [DashboardController::class, 'getHomeProjects']);
-    });
 });
 
 // Folder Routes
@@ -119,4 +65,70 @@ Route::group(['prefix' => 'projects'], function () {
     Route::get('/childs', [ProjectController::class, 'getChilds']);
 });
 
+Route::get("php", function(){
+    return phpinfo();
+});
+
 Route::get('/projects/{projectId}/folders', 'FolderController@getProjectFoldersWithSubfoldersAndDocuments');
+
+
+Route::get('test', function(){
+    return 12;
+});
+
+
+  // User Routes
+  Route::group(['prefix' => 'usermamangement'], function () {
+    Route::get('/', [UserController::class, 'index']);
+    Route::get('/edit/{id}', [UserController::class, 'getUserById']);
+    Route::post('/update/{id}', [UserController::class, 'editUser']);
+    Route::delete('/delete/{id}', [UserController::class, 'deleteUser']);
+    Route::post('/{id}/password', [AuthController::class, 'resetPassword']);
+    Route::get("data", [AuthController::class, 'getLoggedUserData']);
+    Route::post('/toggleStatus', [UserController::class, 'toggleStatus']);
+    Route::get("/all", [UserController::class, 'getAllUsers']);
+});
+
+// // Role Routes
+// Route::group(['prefix' => 'roles'], function () {
+//     Route::get('/', [RolePermissionController::class, 'getAllRoles']);
+//     Route::get('/permissions', [RolePermissionController::class, 'getAllPermissions']);
+//     Route::post('/store', [RolePermissionController::class, 'createRole']);
+//     Route::post('/update/{id}', [RolePermissionController::class, 'updateRole']);
+//     Route::delete('/delete/{id}', [RolePermissionController::class, 'deleteRole']);
+// });
+
+Route::group(['prefix' => 'rolepermission'], function () {
+    Route::get('/', [RolePermissionController::class, 'index']);
+    Route::get('/list', [RolePermissionController::class, 'list']);
+    Route::post('store', [RolePermissionController::class, 'store']);
+    Route::post('update', [RolePermissionController::class, 'update']);
+    Route::delete('/delete/{id}', [RolePermissionController::class, 'delete']);
+});
+
+// User Role Routes
+// Route::post('/users/{id}/roles', [UserRoleController::class, 'setRole']);
+Route::group(['prefix' => 'user-role'], function () {
+    Route::get('/', [UserRoleController::class, 'index']);
+    Route::get('/roles', [UserRoleController::class, 'roles']);
+    Route::post('update', [UserRoleController::class, 'update']);
+});
+
+// Project Routes
+
+// Document Routes
+Route::group(['prefix' => 'documents'], function () {
+    Route::get('/', [DocumentsController::class, 'index']);
+    Route::post('/store', [DocumentsController::class, 'store']);
+    Route::post('/update', [DocumentsController::class, 'update']);
+    Route::get('/edit/{documents}', [DocumentsController::class, 'show']);
+    Route::delete('/delete/{documents}', [DocumentsController::class, 'delete']);
+    Route::get('/all', [ProjectController::class, 'getAllProjects']);
+    Route::get('/users', [ProjectController::class, 'getAllUsers']);
+});
+
+Route::get('/abilities', [RolePermissionController::class, 'abilities']);
+
+Route::group(['prefix' => 'dashboard'], function () {
+    Route::get('/', [DashboardController::class, 'getHomeProjects']);
+});

@@ -96,38 +96,24 @@ class DocumentsController extends Controller
 
     public function store(DocumentRequest $request)
     {
-        $validator = Validator::make($request->all(),  $request->rules(), $request->messages());
+        // $validator = Validator::make($request->all(),  $request->rules(), $request->messages());
 
-        if ($validator->fails()) {
-            return response()->json([
-                'data' => $validator->errors(),
-                'message' => 'Validation failed',
-                'status' => 422
-            ], 422);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'data' => $validator->errors(),
+        //         'message' => 'Validation failed',
+        //         'status' => 422
+        //     ], 422);
+        // }
 
         try {
 
-            $folder = Folder::find($request->folder_id);
-            if (!$folder) {
-                return response()->json([
-                    'data' => "Not found",
-                    'message' => 'No such folder found',
-                    'status' => 404
-                ], 404);
-            }
+            $absolutePath = Storage::disk('project_disk')->path($request->path);
 
-            $documents = Documents::create($request->all());
-            $documents->ocr_text = $this->controller->convertPdfToImage($request->file, $request->lang);
-            $documents->save();
-
-            if ($request->has('file') && !empty($request->file)) {
-                $files = $request->files;
-                $this->uploadDocuments($documents, $files);
-            }
+            $ocr_text = $this->controller->convertPdfToImage($absolutePath, $request->lang);
 
             return response()->json([
-                'data' => $documents,
+                'data' => $ocr_text,
                 'message' => 'Successfully created documents',
                 'status' => 200
             ], 200);

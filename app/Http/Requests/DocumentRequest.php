@@ -29,18 +29,10 @@ class DocumentRequest extends FormRequest
 
         return [
             'file' => [
-                'required',
+                'nullable',
                 // 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt',
                 Rule::unique('documents')->ignore($documentId),
             ],
-            'title' => [
-                'required',
-                Rule::unique('documents')->ignore($documentId),
-            ],
-            'description' => 'nullable',
-            'slug' => 'required',
-            'status' => 'required',
-            "project_id" => "required",
         ];
     }
 
