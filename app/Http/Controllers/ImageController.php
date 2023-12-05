@@ -135,9 +135,13 @@ class ImageController extends Controller
 
         foreach ($imageFiles as $imageFile) {
             $ocr = new TesseractOCR($imageFile);
+            $ocr->lang($lang);
             $ocr->setTempDir(storage_path('app/tmp')); // Setting a temporary directory for Tesseract to use
-            $ocr->preserveInterwordSpaces(); // Add the preserve_interword_spaces option
-            $combinedText .= $ocr->lang($lang)->run(); // Performing OCR and append the extracted text to the result
+            $ocr->preserveInterwordSpaces();
+            $ocr->config('preprocess', 'thresh');
+            // $ocr->hocr();
+            $combinedText .= $ocr->run();
+            \Log::info("OCR Result for {$imageFile}: {$combinedText}");
         }
 
         return $combinedText;
@@ -151,4 +155,24 @@ class ImageController extends Controller
 
     //     //when this method is called
     // }
+
+    public function preprocessForOCR($filename)
+    {
+        $imagePath = Storage::disk('public')->path($filename);
+        $image = ImageIntervention::make($imagePath);
+        $image->resize(800, 600);
+        $image->greyscale();
+        $image->contrast(20);
+        $image->sharpen(10);
+        $processedImagePath = Storage::disk('public')->path('processed_' . $filename);
+        $image->save($processedImagePath);
+
+        $ocr = new TesseractOCR($processedImagePath);
+        $text = $ocr->run();
+
+        return response()->json([
+            'processed_image' => $processedImagePath,
+            'ocr_result' => $text,
+        ]);
+    }
 }

@@ -129,6 +129,8 @@ Route::group(['prefix' => 'documents'], function () {
 
 Route::get('/abilities', [RolePermissionController::class, 'abilities']);
 
+Route::post('/ocr/export-pdf', [DocumentsController::class, 'exportAndDownloadMultiplePDF']);
+
 Route::group(['prefix' => 'dashboard'], function () {
     Route::get('/', [DashboardController::class, 'getHomeProjects']);
 });

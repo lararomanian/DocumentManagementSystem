@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Dompdf\Dompdf;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
@@ -16,20 +17,27 @@ class PdfActivitiesController extends Controller
 {
     public function exportPDF($documents)
     {
-        $ocr_text = $documents->ocr_text;
-        $document_name = $documents->name;
+        try {
+            $ocr_text = $documents;
+            $document_name = $documents . '_pdf';
 
-        $sanitizedOcrText = $this->sanitizeHtml($ocr_text);
-        $plainText = strip_tags($sanitizedOcrText);
+            $sanitizedOcrText = $this->sanitizeHtml($documents);
+            $plainText = strip_tags($sanitizedOcrText);
 
-        $data = [
-            'ocr_text' => $plainText,
-            'document_name' => $document_name
-        ];
+            $data = [
+                'ocr_text' => $plainText,
+                'document_name' => $document_name
+            ];
 
-        $pdf = PDF::loadView('pdf_template', compact('data'));
+            $pdf = PDF::loadView('pdf_template', compact('data'));
 
-        return $pdf->download('pdf_template.pdf');
+            return $pdf->download('pdf_template.pdf');
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
     }
 
     private function sanitizeHtml($input)

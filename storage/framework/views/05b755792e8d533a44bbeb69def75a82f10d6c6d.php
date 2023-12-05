@@ -49,7 +49,8 @@
 
 <body>
     <p>
-        {!! nl2br($data['ocr_text']) !!}
+        <?php echo nl2br($data['ocr_text']); ?>
+
     </p>
 
     <!-- Add a page break if necessary -->
@@ -58,3 +59,4 @@
 </body>
 
 </html>
+<?php /**PATH D:\laragon\www\DocumentManagementSystem\resources\views/pdf_template.blade.php ENDPATH**/ ?>

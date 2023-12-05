@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use League\CommonMark\Node\Block\Document;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DocumentsController extends Controller
 {
@@ -231,7 +232,7 @@ class DocumentsController extends Controller
         $documents = Documents::find($document);
 
         if ($documents && !empty($documents)) {
-        return    $this->pdf_controller->exportPDF($documents);
+            return    $this->pdf_controller->exportPDF($documents);
 
             return response()->json([
                 'message' => 'Successfully exported pdf',
@@ -265,4 +266,80 @@ class DocumentsController extends Controller
         ], 404);
     }
 
+    public function exportAndDownloadMultiplePDF(Request $request)
+    {
+        $documents = $request->ocr_text;
+        $temp_path_array = [];
+
+        foreach ($documents as $document) {
+            array_push($temp_path_array,$this->exportPDFDoc($document));
+        }
+
+        return response()->json([
+            'message' => 'Successfully exported pdf',
+            'paths' => $temp_path_array,
+            'status' => 200
+        ], 200);
+    }
+
+    public function exportPDFDoc($document)
+    {
+        try {
+            // Assuming $document is the necessary data for the PDF generation
+            $ocr_text = $document;
+            $document_name = $ocr_text . '_pdf';
+
+            $sanitizedOcrText = $this->sanitizeHtml($ocr_text);
+            $plainText = strip_tags($sanitizedOcrText);
+
+            $data = [
+                'ocr_text' => $plainText,
+                'document_name' => $document_name
+            ];
+
+            $pdf = PDF::loadView('pdf_template', compact('data'));
+            \Log::info('PDF generated successfully for document: ' . $document);
+
+            $tempFilePath = tempnam(sys_get_temp_dir(), 'pdf_temp');
+            $pdf->save($tempFilePath);
+
+            // Log the path of the saved PDF
+            \Log::info('PDF saved to: ' . $tempFilePath);
+
+            // Set proper headers for the download
+            $headers = [
+                'Content-Disposition' => 'attachment; filename="pdf_template.pdf"',
+                'Content-Type' => 'application/pdf',
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma' => 'no-cache',
+                'Expires' => 'Sat, 01 Jan 2000 00:00:00 GMT',
+            ];
+
+            return response()->download($tempFilePath, 'pdf_template.pdf', $headers);
+            return $tempFilePath;
+
+        } catch (\Exception $e) {
+            // Log any exceptions
+            \Log::error('Error generating PDF: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function sanitizeHtml($input)
+    {
+        // Allow specific HTML tags and decode HTML entities
+        $allowedTags = '<p><br><strong><em><ul><ol><li><span>';
+        $decodedHtml = html_entity_decode($input, ENT_QUOTES, 'UTF-8');
+
+        // Remove disallowed tags and attributes
+        $sanitizedHtml = strip_tags($decodedHtml, $allowedTags);
+
+        // Convert special characters to HTML entities
+        $sanitizedHtml = htmlspecialchars($sanitizedHtml, ENT_QUOTES, 'UTF-8');
+
+        return $sanitizedHtml;
+    }
 }
