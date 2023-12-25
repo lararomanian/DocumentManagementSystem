@@ -89,10 +89,8 @@ class ImageController extends Controller
 
     public function convertPdfToImage($filePath, $lang)
     {
-        // Generate a random folder name for storing PDF-related files
         $pdf_folder_name = 'pdfs/' . bin2hex(random_bytes(7)) . '/';
 
-        // Use the Storage facade to store the PDF file with the generated folder and original name
         $pdfPath = Storage::putFileAs($pdf_folder_name, new File($filePath), basename($filePath));
 
         // Converting the PDF to images
@@ -105,13 +103,11 @@ class ImageController extends Controller
             mkdir($pdf_images_folder, 0777, true);
         }
 
-        // Looping through all pages and save each page as an image
         $numPages = $pdf->getNumberOfPages();
         for ($page = 1; $page <= $numPages; $page++) {
             $pdf->setPage($page)->saveImage($pdf_images_folder . "/page{$page}.png");
         }
 
-        // Assuming $this->scanImages is a valid method, call it with the images folder and language
         return $this->scanImages($pdf_images_folder, $lang);
     }
     // private function scanImages($imagesFolder, $lang)
@@ -159,7 +155,7 @@ class ImageController extends Controller
     public function preprocessForOCR($filename)
     {
         $imagePath = Storage::disk('public')->path($filename);
-        $image = ImageIntervention::make($imagePath);
+        $image = \ImageIntervention::make($imagePath);
         $image->resize(800, 600);
         $image->greyscale();
         $image->contrast(20);

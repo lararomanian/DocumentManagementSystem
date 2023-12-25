@@ -272,7 +272,7 @@ class DocumentsController extends Controller
         $temp_path_array = [];
 
         foreach ($documents as $document) {
-            array_push($temp_path_array,$this->exportPDFDoc($document));
+            array_push($temp_path_array, $this->exportPDFDoc($document));
         }
 
         return response()->json([
@@ -293,7 +293,7 @@ class DocumentsController extends Controller
             $plainText = strip_tags($sanitizedOcrText);
 
             $data = [
-                'ocr_text' => $plainText,
+                'ocr_text' => $ocr_text,
                 'document_name' => $document_name
             ];
 
@@ -306,6 +306,18 @@ class DocumentsController extends Controller
             // Log the path of the saved PDF
             \Log::info('PDF saved to: ' . $tempFilePath);
 
+
+            $baseDirectory = 'D:/laragon/www/TESTING_SAIL/laravel-file-manager/storage/app/public';
+
+            $uniqueName = time() . '_' . bin2hex(random_bytes(7));
+            $folderPath = '/public/downloadable_pdf/' . $uniqueName;
+            Storage::disk('project_disk')->makeDirectory($folderPath);
+            $fiile = Storage::disk('project_disk')->putFileAs($folderPath, new \Illuminate\Http\File($tempFilePath), $uniqueName . '.pdf');
+
+            \Log::info('PDF saved to: ' . $folderPath);
+
+            $fiile = substr($fiile, 7);
+            \Log::info('FILEEo: ' . $fiile);
             // Set proper headers for the download
             $headers = [
                 'Content-Disposition' => 'attachment; filename="pdf_template.pdf"',
@@ -315,9 +327,10 @@ class DocumentsController extends Controller
                 'Expires' => 'Sat, 01 Jan 2000 00:00:00 GMT',
             ];
 
-            return response()->download($tempFilePath, 'pdf_template.pdf', $headers);
-            return $tempFilePath;
-
+            // return response()->download($tempFilePath, 'pdf_template.pdf', $headers);
+            // $file_path = $baseDirectory . $folderPath. '/' . $uniqueName .'.pdf';
+            // return response()->download($file_path);
+            return $fiile;
         } catch (\Exception $e) {
             // Log any exceptions
             \Log::error('Error generating PDF: ' . $e->getMessage());
